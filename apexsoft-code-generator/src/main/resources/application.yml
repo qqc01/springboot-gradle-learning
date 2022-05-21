@@ -1,0 +1,4 @@
+codeGenerator:
+  field:
+    function:
+      name: otherService
