@@ -1,4 +1,27 @@
 codeGenerator:
-  field:
-    function:
-      name: otherService
+    # 业务配置
+    functionName: otherService
+    functionDesc: 机构C5-服务模块基础微服务
+    methodName: queryCusMaintainList1
+    methodDesc: 客户维护查询
+    procedureName: PCX_JC_KHWHCX
+    interfaceIndex: 1
+    pageEnabled: true
+    isReturnResult: true
+    testEnabled: true
+    isCreateFile: true
+    # 根路径
+    protoSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-protocol\src\main\proto
+    clientSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-client-org-activity\src\main\java
+    serverSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\java
+    mapperXmlSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\resources\mybatis\oracle\jgcrm
+    serverTestSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\test\java
+    serverTestOutSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\out\test\classes
+    # 默认设置
+    defaultPackageNamePrefix: com.apexsoft.crm.otheractivity
+    whiteRegExp: czr
+    # 其他设置
+    # proto
+    protoPackageName: ip.basic.activity
+    protoName: activity1
+    rpcRegExp: .*Service\s+.*

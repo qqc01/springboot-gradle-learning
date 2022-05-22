@@ -13,6 +13,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,16 +31,17 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implements AutoCodeGenerator {
+public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implements AutoCodeGenerator, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(QueryListAutoCodeNewGenerator.class);
     private AutoCodeGeneratorHelper helper;
+
     static {
         setBasicClass(QueryListAutoCodeNewGenerator.class);
     }
 
     /**
      * 编写proto
-     *
+     * <p>
      * 1、分页
      * 2、入参、出差包含list
      * 3、没有返回结果集
@@ -55,7 +58,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     /**
      * 编写model
-     *
+     * <p>
      * 1、分页
      * 2、入参包含list
      * 3、新增/追加
@@ -68,7 +71,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     /**
      * 编写controller
-     *
+     * <p>
      * 1.Get/Post
      * 2.新增/追加
      */
@@ -88,7 +91,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("\tpublic {2}Rsp {0}(@ApiParam(value = \"入参JSON\") @RequestBody {2}Model model) {\n");
         sb.append("\t\treturn {3}.cusMaintainLocking(model);\n");
         sb.append("\t}\n");
-        String controllerAppendString = replaceAll(sb, methodName, methodDesc, upperMethodName, getConsumerName());
+        String controllerAppendString = replaceAll(sb, configuration.methodName, configuration.methodDesc, configuration.upperMethodName, getConsumerName());
         log.info("controllerAppendString:\n{}", controllerAppendString);
         return controllerAppendString;
     }
@@ -190,7 +193,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     public String getProtoRPCAppendString() {
         StringBuilder sb = new StringBuilder();
         sb.append("\t//{0}\n").append("\trpc {1} ({2}Req) returns ({2}Rsp) {};\n");
-        String protoRPCAppendString = replaceAll(sb, methodDesc, methodName, upperMethodName);
+        String protoRPCAppendString = replaceAll(sb, configuration.methodDesc, configuration.methodName, configuration.upperMethodName);
         log.info("构建protoRPCAppendString:\n{}", protoRPCAppendString);
         return protoRPCAppendString;
     }
@@ -225,7 +228,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             sb.append(replaceAll("\trepeated {1}Record records = {0}; //返回结果集\n", fieldIndex++));
         }
         // 2.2 不分页返回结果集
-        if (!pageEnabled && isReturnResult) {
+        if (!getPageEnabled() && getIsReturnResult()) {
             // 2.3是否返回结果集
             sb.append(replaceAll("\trepeated {1}Record records = {0}; //返回结果集\n", fieldIndex++));
         }
@@ -254,7 +257,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         deleteEnd(sb);
 
         sb.append("/************************************** {0}结束 **************************************/\n");
-        String protoAppendString = replaceAll(sb, methodName, upperMethodName);
+        String protoAppendString = replaceAll(sb, configuration.methodName, configuration.upperMethodName);
         log.info("构建protoAppendString:\n{}", protoAppendString);
         return protoAppendString;
     }
@@ -384,5 +387,23 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     @Override
     protected boolean isList(Object obj) {
         return String.valueOf(obj).matches(".*(l|L)ist.*");
+    }
+
+    /**
+     * 是否Get请求，默认false
+     */
+    private boolean isGet = false;
+
+    public boolean isGet() {
+        return isGet;
+    }
+
+    public void setGet(boolean get) {
+        isGet = get;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        fileCheck();
     }
 }
