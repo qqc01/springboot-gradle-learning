@@ -2,13 +2,12 @@ package com.qqc.apexsoft.codegenerator.utils;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
+import com.alibaba.excel.metadata.Cell;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // 有个很重要的点 DemoDataListener 不能被spring管理，要每次读取excel都要new,然后里面用到spring可以构造方法传进去
 public class ExcelListener<T> extends AnalysisEventListener<T> {
@@ -83,5 +82,11 @@ public class ExcelListener<T> extends AnalysisEventListener<T> {
 
     public Map<Integer, String> getHeadMap() {
         return headMap;
+    }
+
+    @Override
+    public boolean hasNext(AnalysisContext context) {
+        Map<Integer, Cell> cellMap =context.readRowHolder().getCellMap();
+        return !CollectionUtils.isEmpty(Collections.singleton(cellMap));
     }
 }
