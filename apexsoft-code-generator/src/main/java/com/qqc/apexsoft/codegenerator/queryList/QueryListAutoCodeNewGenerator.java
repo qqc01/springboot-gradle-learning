@@ -142,7 +142,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     }
 
     private String getProtoBody(List<ImportDataModel> list) {
-        return getProtoBody(list, whiteRegExp);
+        return getProtoBody(list, configuration.getWhiteRegExp());
     }
 
     private String getProtoBody(List<ImportDataModel> list, String whiteRegExp) {
@@ -309,7 +309,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     }
 
     private String getModelBody(List<ImportDataModel> list) {
-        return getModelBody(list, whiteRegExp);
+        return getModelBody(list, configuration.getWhiteRegExp());
     }
 
     private String getModelBody(List<ImportDataModel> list, String whiteRegExp) {
@@ -344,7 +344,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             String name = importDataModel.getName();
             ImportDataType type = importDataModel.getType();
             String listObjName = importDataModel.getListObjName();
-            if (name.matches(getWhiteRegExp())) {
+            if (name.matches(configuration.getWhiteRegExp())) {
                 continue;
             }
             // list处理

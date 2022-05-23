@@ -23,7 +23,9 @@ public class StringHelper {
     }
 
     public StringHelper replace(String str) {
-        this.path = str.replace(".", "\\");
+        if (StringUtils.isNotBlank(str)) {
+            this.path = str.replace(".", "\\");
+        }
         return this;
     }
 

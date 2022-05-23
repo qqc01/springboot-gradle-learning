@@ -1,7 +1,7 @@
 package com.qqc.apexsoft.codegenerator.common;
 
 import com.alibaba.excel.EasyExcel;
-import com.qqc.apexsoft.codegenerator.model.CodeGeneratorConfiguration;
+import com.qqc.apexsoft.codegenerator.config.CodeGeneratorConfiguration;
 import com.qqc.apexsoft.codegenerator.model.ImportDataModel;
 import com.qqc.apexsoft.codegenerator.model.ImportDataType;
 import com.qqc.apexsoft.codegenerator.utils.AutoCodeGeneratorException;
@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -53,10 +52,9 @@ public class BasicAutoCodeGenerator {
      */
     protected String mainName;
 
-    /**
-     * 白名单
-     */
-    protected String whiteRegExp;
+    public String modelName;
+
+    public String modelDesc;
 
 
     protected BasicAutoCodeGenerator() {
@@ -169,7 +167,6 @@ public class BasicAutoCodeGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        log.info("write成功,path:{},context:{}", path, context);
     }
 
     /**
@@ -227,7 +224,6 @@ public class BasicAutoCodeGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        log.info("write1,context1:{},context2:{}", context1, context2);
     }
 
     /**
@@ -302,7 +298,7 @@ public class BasicAutoCodeGenerator {
     }
 
 
-    public String getPath(String name) {
+    public String getPath(String mainName) {
         Assert.notNull(configuration.protoSrcPath);
         Assert.notNull(configuration.clientSrcPath);
         Assert.notNull(configuration.serverSrcPath);
@@ -312,128 +308,80 @@ public class BasicAutoCodeGenerator {
         Assert.notNull(configuration.defaultPackageNamePrefix);
         Assert.notNull(configuration.functionName);
         String var0 = null;//根路径
-        String var1 = null;//包路径
+        String var1 = stringHelper.replace(getPackageName(mainName)).getPath();//包路径
         String var2 = null;//文件名
         String var3 = ".java";//文件后缀
-        switch (name) {
+        switch (mainName) {
             case "proto":
                 var0 = configuration.protoSrcPath;
-                var1 = stringHelper.replace(configuration.protoPackageName).getPath();
                 var2 = configuration.protoName;
                 var3 = ".proto";
                 break;
             case "model":
                 var0 = configuration.clientSrcPath;
-                var1 = stringHelper.replace(getPackageName(name)).getPath();
-                var2 = StringUtils.isBlank(configuration.modelName) ? upper(configuration.methodName) + "Model" : configuration.modelName;
+                var2 = StringUtils.isBlank(modelName) ? upper(configuration.methodName) + "Model" : modelName;
                 break;
             case "controller":
                 var0 = configuration.clientSrcPath;
-                var1 = stringHelper.replace(getPackageName("controller")).getPath();
-                var2 = StringUtils.isBlank(configuration.controllerName) ? configuration.functionName + "Controller" : configuration.controllerName;
+                var2 = configuration.functionName + "Controller";
                 break;
             case "consumer":
                 var0 = configuration.clientSrcPath;
-                var1 = stringHelper.replace(getPackageName("consumer")).getPath();
-                var2 = StringUtils.isBlank(configuration.consumerName) ? configuration.functionName + "Consumer" : configuration.consumerName;
+                var2 = configuration.functionName + "Consumer";
                 break;
             case "provider":
                 var0 = configuration.serverSrcPath;
-                var1 = stringHelper.replace(getPackageName("provider")).getPath();
-                var2 = StringUtils.isBlank(configuration.providerName) ? configuration.functionName + "Provider" : configuration.providerName;
+                var2 = configuration.functionName + "Provider";
                 break;
             case "dao":
                 var0 = configuration.serverSrcPath;
-                var1 = stringHelper.replace(getPackageName("dao")).getPath();
-                var2 = StringUtils.isBlank(configuration.daoName) ? configuration.functionName + "Dao" : configuration.daoName;
+                var2 = configuration.functionName + "Dao";
                 break;
             case "daoImpl":
                 var0 = configuration.serverSrcPath;
-                var1 = stringHelper.replace(getPackageName("daoImpl")).getPath();
-                var2 = StringUtils.isBlank(configuration.daoImplName) ? configuration.functionName + "DaoImpl" : configuration.daoImplName;
+                var2 = configuration.functionName + "DaoImpl";
                 break;
             case "mapper":
                 var0 = configuration.serverSrcPath;
-                var1 = stringHelper.replace(getPackageName("mapper")).getPath();
-                var2 = StringUtils.isBlank(configuration.mapperName) ? configuration.functionName + "Mapper" : configuration.mapperName;
+                var2 = configuration.functionName + "Mapper";
                 break;
             case "mapperXml":
                 var0 = configuration.mapperXmlSrcPath;
-                var1 = "";
-                var2 = StringUtils.isBlank(configuration.mapperXmlName) ? configuration.functionName + "Mapper" : configuration.mapperXmlName;
+                var2 = configuration.functionName + "Mapper";
                 var3 = ".xml";
                 break;
             case "test":
                 var0 = configuration.serverTestSrcPath;
-                var1 = stringHelper.replace(getPackageName("test")).getPath();
-                var2 = StringUtils.isBlank(configuration.testName) ? configuration.functionName + "Test" : configuration.testName;
+                var2 = configuration.functionName + "Test";
                 break;
             case "testData":
                 var0 = configuration.serverTestOutSrcPath;
-                var1 = stringHelper.replace(getPackageName("testData")).getPath();
                 var2 = configuration.interfaceIndex + "_" + configuration.methodName;
                 var3 = "";
                 break;
         }
-        return stringHelper.concat(var0).concatPath(var1).concatPath(var2).concat(var3).getPath();
+        return stringHelper.concat(var0)
+                .concatPath(var1)
+                .concatPath(var2)
+                .concat(var3)
+                .getPath();
     }
 
     public String getPackageName(String mainName) {
-        Objects.requireNonNull(mainName);
-        String var = null;
-        switch (mainName) {
-            case "controller":
-                if (!StringUtils.isBlank(configuration.controllerPackageName)) {
-                    return configuration.controllerPackageName;
-                } else {
-                    var = mainName;
-                }
-                break;
-            case "consumer":
-                if (!StringUtils.isBlank(configuration.controllerPackageName)) {
-                    return configuration.controllerPackageName;
-                } else {
-                    var = "service";
-                }
-                break;
-            case "proto":
-                return configuration.protoPackageName;
-            case "provider":
-                if (!StringUtils.isBlank(configuration.providerName)) {
-                    return configuration.providerName;
-                } else {
-                    var = mainName;
-                }
-                break;
-            case "dao":
-                if (!StringUtils.isBlank(configuration.daoPackageName)) {
-                    return configuration.daoPackageName;
-                } else {
-                    var = mainName;
-                }
-                break;
-            case "daoImpl":
-                if (!StringUtils.isBlank(configuration.daoImplPackageName)) {
-                    return configuration.daoImplPackageName;
-                } else {
-                    var = "dao.impl";
-                }
-                break;
-            case "mapper":
-                if (!StringUtils.isBlank(configuration.mapperPackageName)) {
-                    return configuration.mapperPackageName;
-                } else {
-                    var = mainName;
-                }
-                break;
-            case "test":
-            case "testData":
-                return StringUtils.isBlank(configuration.testDataPackageName) ? configuration.defaultPackageNamePrefix : configuration.testDataPackageName;
-            default:
-                var = mainName;
-                break;
+        String packageName = mainName;
+        if (mainName.equals("proto")) {
+            return configuration.protoPackageName;
         }
-        return configuration.defaultPackageNamePrefix.concat(".").concat(var);
+        if (mainName.equals("consumer")) {
+            packageName = "service";
+        }
+        if (mainName.equals("mapperXml")) {
+            return "";
+        }
+        if (mainName.equals("daoImpl")) {
+            packageName = "dao.impl";
+        }
+        return configuration.defaultPackageNamePrefix.concat(".").concat(packageName);
     }
 
     public boolean getIsCreateFile() {
@@ -449,38 +397,28 @@ public class BasicAutoCodeGenerator {
     }
 
     protected String getConsumerName() {
-        if (StringUtils.isBlank(configuration.controllerName)) {
-            return configuration.functionName + "Consumer";
-        }
-        return configuration.consumerName;
+        return configuration.functionName + "Consumer";
     }
 
     protected String getServiceName() {
-        if (StringUtils.isBlank(configuration.serviceName)) {
-            return configuration.upperFunctionName + "Service";
-        }
-        return configuration.serviceName;
+        return configuration.upperFunctionName + "Service";
     }
 
     protected String getModelName() {
-        if (StringUtils.isBlank(configuration.modelName)) {
+        if (StringUtils.isBlank(modelName)) {
             return configuration.upperMethodName + "Model";
         }
-        return configuration.modelName;
+        return modelName;
     }
 
     public String getModelDesc() {
-        if (StringUtils.isBlank(configuration.modelDesc)) {
+        if (StringUtils.isBlank(modelDesc)) {
             return configuration.methodDesc;
         }
-        return configuration.modelDesc;
+        return modelDesc;
     }
 
     protected void setModelDesc(String desc) {
-        configuration.setModelDesc(desc);
-    }
-
-    protected void setModelName(String listObjName) {
-        configuration.setModelName(listObjName);
+        this.modelDesc =desc;
     }
 }
