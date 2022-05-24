@@ -172,11 +172,14 @@ public class BasicAutoCodeGenerator {
                     bw.write("\n");
                     line = iterator.next();
                 }
-                bw.write("\n");
+//                bw.write("\n");
             }
 
             // 开始写新代码
             StringBuilder sb = new StringBuilder();
+            if (configuration.getInterfaceIndex() != 1) {
+                sb.append("\n");
+            }
             sb.append(context);
             sb.append(line == null ? "" : line);
             bw.write(sb.toString());

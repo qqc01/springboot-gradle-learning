@@ -48,4 +48,9 @@ public class QueryListAutoCodeNewGeneratorTest {
     public void writeProvider() {
         queryListAutoCodeNewGenerator.writeProvider();
     }
+
+    @Test
+    public void writeDao() {
+        queryListAutoCodeNewGenerator.writeDao();
+    }
 }

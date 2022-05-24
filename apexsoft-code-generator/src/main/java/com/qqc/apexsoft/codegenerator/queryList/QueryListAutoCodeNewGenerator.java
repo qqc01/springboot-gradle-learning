@@ -125,9 +125,21 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         write0(getPath(mainName), getProviderAppendString());
     }
 
+    /**
+     * 编写dao
+     * <p>
+     * 1、没有返回结果集
+     * 2、新增/追加
+     */
     @Override
     public void writeDao() {
-
+        mainName = "dao";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getDaoNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getDaoAppendString());
     }
 
     @Override
@@ -473,6 +485,10 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("\n");
         sb.append("\t@Autowired\n");
         sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n", 3, 6));
+        // 补充第一个接口时的空行
+        if (configuration.getInterfaceIndex() == 1) {
+            sb.append("\n");
+        }
         sb.append("}\n");
         String controllerNewString = replaceAll(sb,
                 getPackageName(mainName),
@@ -536,6 +552,10 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("\n");
         sb.append("\t@AmsBlockingStub\n");
         sb.append(replaceFormat("\tprivate {}ServiceGrpc.{}ServiceBlockingStub {}ServiceBlockingStub;\n", 3, 3, replaceCount++));
+        // 补充第一个接口时的空行
+        if (configuration.getInterfaceIndex() == 1) {
+            sb.append("\n");
+        }
         sb.append("}\n");
         String consumerNewString = replaceAll(sb,
                 configuration.defaultPackageNamePrefix,
@@ -592,6 +612,10 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Provider.class);\n", 1));
         sb.append("\t@Autowired\n");
         sb.append(replaceFormat("\tprivate {}Dao {}Dao;\n", 1, replaceCount++));
+        // 补充第一个接口时的空行
+        if (configuration.getInterfaceIndex() == 1) {
+            sb.append("\n");
+        }
         sb.append("}\n");
         String providerNewString = replaceAll(sb,
                 configuration.defaultPackageNamePrefix,
@@ -662,5 +686,41 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             sb.append(replaceAll("\t\tins.put(\"{0}\", request.get{1}());\n", importDataModel.getProcedureParam(), upper(importDataModel.getName())));
         }
         return sb.toString();
+    }
+
+    private String getDaoNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {}.dao;\n", replaceCount++));
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import java.util.List;\n");
+        sb.append("import java.util.Map;\n");
+        sb.append("\n");
+        sb.append(getCopyRightString(replaceCount++));
+        sb.append(replaceFormat("public interface {}Dao {\n", replaceCount++));
+        sb.append("}\n");
+        String daoNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                getPackageName("proto"),
+                getTime(),
+                configuration.upperFunctionName);
+        log.info("daoNewString:\n{}", daoNewString);
+        return daoNewString;
+    }
+
+    private String getDaoAppendString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        String daoAppendString = null;
+        if (pageEnabled() || isReturnResult()) {
+            sb.append(replaceFormat("\tList<{}Record.Builder> {}(Map<String, Object> ins);\n", replaceCount++, replaceCount++));
+            daoAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+        } else {
+            sb.append(replaceFormat("\tvoid {}(Map<String, Object> ins);\n", replaceCount++));
+            daoAppendString = replaceAll(sb, configuration.methodName);
+        }
+        log.info("daoAppendString:\n{}", daoAppendString);
+        return daoAppendString;
     }
 }
