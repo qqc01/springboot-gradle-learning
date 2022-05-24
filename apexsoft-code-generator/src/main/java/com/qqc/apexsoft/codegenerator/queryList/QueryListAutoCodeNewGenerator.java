@@ -207,7 +207,13 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     @Override
     public void writeServerTest() {
-
+        mainName = "serverTest";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getServerTestNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getServerTestAppendString());
     }
 
     @Override
@@ -985,6 +991,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         String clientTestNewString = null;
         StringBuilder sb = new StringBuilder();
         sb.append(replaceFormat("package {};\n", replaceCount++));
+        sb.append("\n");
         sb.append("import com.alibaba.fastjson.JSON;\n");
         sb.append("import com.alibaba.fastjson.JSONObject;\n");
         sb.append("import com.alibaba.fastjson.serializer.SerializerFeature;\n");
@@ -1022,9 +1029,6 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("\n");
         sb.append("\t@Autowired\n");
         sb.append("\tprivate RestTemplate restTemplate;\n");
-        sb.append("\n");
-        sb.append("\t@AmsBlockingStub\n");
-        sb.append(replaceFormat("\tprivate {}ServiceGrpc.{}ServiceBlockingStub {}ServiceBlockingStub;\n", 3, 3, replaceCount++));
         sb.append("\n");
         sb.append("\tprivate List<String> cookies = Arrays.asList(\"LBSESSION=YWUzNDdkYzEtY2U5MS00ODgxLWE2YzYtYjFkNzdjMzdiM2Qz; Path=/; HttpOnly\");\n");
         sb.append("\n");
@@ -1074,5 +1078,81 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
                 configuration.methodName);
         log.info("clientTestAppendString:\n{}", clientTestAppendString);
         return clientTestAppendString;
+    }
+
+    private String getServerTestNewString() {
+        int replaceCount = 0;
+        String serverTestNewString = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {};\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import com.alibaba.fastjson.JSON;\n");
+        sb.append("import com.alibaba.fastjson.JSONObject;\n");
+        sb.append("import com.alibaba.fastjson.serializer.SerializerFeature;\n");
+        sb.append("import com.apex.ams.annotation.AmsBlockingStub;\n");
+        sb.append(replaceFormat("import com.apexsoft.crm.{}ServerApplication;\n", replaceCount++));
+        sb.append("import com.apexsoft.utils.FileUtils;\n");
+        sb.append("import com.apexsoft.utils.ProtoBufUtil;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import org.hamcrest.Matchers;\n");
+        sb.append("import org.junit.Assert;\n");
+        sb.append("import org.junit.Before;\n");
+        sb.append("import org.junit.Test;\n");
+        sb.append("import org.junit.runner.RunWith;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
+        sb.append("import org.springframework.boot.test.context.SpringBootTest;\n");
+        sb.append("import org.springframework.http.HttpEntity;\n");
+        sb.append("import org.springframework.http.HttpHeaders;\n");
+        sb.append("import org.springframework.http.MediaType;\n");
+        sb.append("import org.springframework.http.ResponseEntity;\n");
+        sb.append("import org.springframework.test.context.junit4.SpringRunner;\n");
+        sb.append("import org.springframework.web.client.RestTemplate;\n");
+        sb.append("\n");
+        sb.append("import java.util.Arrays;\n");
+        sb.append("import java.util.HashMap;\n");
+        sb.append("import java.util.List;\n");
+        sb.append("import java.util.Map;\n");
+        sb.append("\n");
+        sb.append("@RunWith(SpringRunner.class)\n");
+        sb.append(replaceFormat("@SpringBootTest(classes = {}ServerApplication.class)\n", 1));
+        sb.append(replaceFormat("public class {}ServerTest {\n", replaceCount++));
+        sb.append("\n");
+        sb.append("\t@AmsBlockingStub\n");
+        sb.append(replaceFormat("\tprivate {}ServiceGrpc.{}ServiceBlockingStub {}ServiceBlockingStub;\n", 3, 3, replaceCount++));
+        sb.append("\n");
+        sb.append("}\n");
+        serverTestNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                configuration.upperServiceName,
+                getPackageName("proto"),
+                configuration.upperFunctionName,
+                configuration.functionName);
+        log.info("serverTestNewString:\n{}", serverTestNewString);
+        return serverTestNewString;
+    }
+
+    private String getServerTestAppendString() {
+        int replaceCount = 0;
+        String serverTestAppendString = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append("\t@Test\n");
+        sb.append(replaceFormat("\tpublic void {}() {\n", replaceCount++));
+        sb.append(replaceFormat("\t\t{}Req.Builder builder =\n", replaceCount++));
+        sb.append(replaceFormat("\t\t\t\t({}Req.Builder) ProtoBufUtil.parseFile({}ServerTest.class,\n", 1, replaceCount++));
+        sb.append(replaceFormat("\t\t\t\t\t\t\t\t\"{}\", {}Req.newBuilder());\n", 0, 1));
+        sb.append(replaceFormat("\t\t{}Rsp rsp = {}ServiceBlockingStub.{}(builder.build());\n", 1, replaceCount++, 0));
+        sb.append("\t\tProtoBufUtil.print(rsp);\n");
+        sb.append("\t\tAssert.assertNotNull(rsp);\n");
+        sb.append("\t\tAssert.assertThat(rsp.getCode(), Matchers.greaterThanOrEqualTo(0));\n");
+        sb.append("\t\tAssert.assertEquals(rsp.getNote(), \"成功\");\n");
+        sb.append("\t}\n");
+        serverTestAppendString = replaceAll(sb,
+                configuration.methodName,
+                configuration.upperMethodName,
+                configuration.upperFunctionName,
+                configuration.functionName);
+        log.info("serverTestAppendString:\n{}", serverTestAppendString);
+        return serverTestAppendString;
     }
 }

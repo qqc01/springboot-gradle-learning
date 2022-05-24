@@ -74,4 +74,9 @@ public class QueryListAutoCodeNewGeneratorTest {
         queryListAutoCodeNewGenerator.writeClientTest();
     }
 
+    @Test
+    public void writeServerTest() {
+        queryListAutoCodeNewGenerator.writeServerTest();
+    }
+
 }

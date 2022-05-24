@@ -376,7 +376,7 @@ public class BasicAutoCodeGenerator {
                 break;
             case "serverTest":
                 var0 = configuration.serverTestSrcPath;
-                var2 = configuration.upperFunctionName + "serverTest";
+                var2 = configuration.upperFunctionName + "ServerTest";
                 break;
             case "testData":
                 var0 = configuration.serverTestOutSrcPath;
