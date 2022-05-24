@@ -218,7 +218,8 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     @Override
     public void writeTestData() {
-
+        mainName = "testData";
+        write0(getPath(mainName), getTestDataNewString());
     }
 
     /**
@@ -1062,7 +1063,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         StringBuilder sb = new StringBuilder();
         sb.append("\t@Test\n");
         sb.append(replaceFormat("\tpublic void {}() {\n", replaceCount++));
-        sb.append(replaceFormat("\t\tString var = \"{}\";\n", 0));
+        sb.append(replaceFormat("\t\tString var = \"{}\";\n", replaceCount++));
         sb.append("\t\tHttpHeaders headers = new HttpHeaders();\n");
         sb.append("\t\theaders.put(HttpHeaders.COOKIE, cookies);\n");
         sb.append("\t\theaders.setContentType(MediaType.APPLICATION_JSON);\n");
@@ -1072,6 +1073,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("\t}\n");
         clientTestAppendString = replaceAll(sb,
                 configuration.methodName,
+                configuration.interfaceIndex + "_" + configuration.methodName,
                 configuration.upperFunctionName,
                 configuration.serviceName,
                 configuration.functionName,
@@ -1140,7 +1142,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append(replaceFormat("\tpublic void {}() {\n", replaceCount++));
         sb.append(replaceFormat("\t\t{}Req.Builder builder =\n", replaceCount++));
         sb.append(replaceFormat("\t\t\t\t({}Req.Builder) ProtoBufUtil.parseFile({}ServerTest.class,\n", 1, replaceCount++));
-        sb.append(replaceFormat("\t\t\t\t\t\t\t\t\"{}\", {}Req.newBuilder());\n", 0, 1));
+        sb.append(replaceFormat("\t\t\t\t\t\t\t\t\"{}\", {}Req.newBuilder());\n", replaceCount++, 1));
         sb.append(replaceFormat("\t\t{}Rsp rsp = {}ServiceBlockingStub.{}(builder.build());\n", 1, replaceCount++, 0));
         sb.append("\t\tProtoBufUtil.print(rsp);\n");
         sb.append("\t\tAssert.assertNotNull(rsp);\n");
@@ -1151,8 +1153,34 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
                 configuration.methodName,
                 configuration.upperMethodName,
                 configuration.upperFunctionName,
+                configuration.interfaceIndex + "_" + configuration.methodName,
                 configuration.functionName);
         log.info("serverTestAppendString:\n{}", serverTestAppendString);
         return serverTestAppendString;
+    }
+
+    private String getTestDataNewString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+        sb.append(getTestDataBody(inList));
+
+        // 删除最好一个逗号
+        deleteEnd(sb);
+        deleteEnd(sb);
+        sb.append("\n");
+
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    private String getTestDataBody(List<ImportDataModel> inList) {
+        StringBuilder sb = new StringBuilder();
+        for (ImportDataModel importDataModel : inList) {
+            if (importDataModel.isList()) {
+                continue;
+            }
+            sb.append(replaceAll("\t\"{0}\": \"{1}\",\n", importDataModel.getName(), ""));
+        }
+        return sb.toString();
     }
 }

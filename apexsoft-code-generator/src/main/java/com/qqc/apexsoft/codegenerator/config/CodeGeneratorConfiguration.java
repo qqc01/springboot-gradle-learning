@@ -94,8 +94,8 @@ public class CodeGeneratorConfiguration implements InitializingBean {
     /**
      * 服务测试编译根路径
      */
-    @Value("${codeGenerator.serverTestOutSrcPath}")
-    public String serverTestOutSrcPath;
+    @Value("${codeGenerator.serverTestDataSrcPath}")
+    public String serverTestDataSrcPath;
 
     @Value("${codeGenerator.serviceName}")
     public String serviceName;

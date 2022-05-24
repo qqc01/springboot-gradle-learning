@@ -324,7 +324,7 @@ public class BasicAutoCodeGenerator {
         Assert.notNull(configuration.serverSrcPath);
         Assert.notNull(configuration.mapperXmlSrcPath);
         Assert.notNull(configuration.serverTestSrcPath);
-        Assert.notNull(configuration.serverTestOutSrcPath);
+        Assert.notNull(configuration.serverTestDataSrcPath);
         Assert.notNull(configuration.defaultPackageNamePrefix);
         Assert.notNull(configuration.upperFunctionName);
         String var0 = null;//根路径
@@ -379,7 +379,7 @@ public class BasicAutoCodeGenerator {
                 var2 = configuration.upperFunctionName + "ServerTest";
                 break;
             case "testData":
-                var0 = configuration.serverTestOutSrcPath;
+                var0 = configuration.serverTestDataSrcPath;
                 var2 = configuration.interfaceIndex + "_" + configuration.methodName;
                 var3 = "";
                 break;
@@ -405,7 +405,7 @@ public class BasicAutoCodeGenerator {
         if (mainName.equals("daoImpl")) {
             packageName = "dao.impl";
         }
-        if (mainName.equals("clientTest") || mainName.equals("serverTest")) {
+        if (mainName.equals("clientTest") || mainName.equals("serverTest") || mainName.equals("testData")) {
             return configuration.defaultPackageNamePrefix;
         }
         return configuration.defaultPackageNamePrefix.concat(".").concat(packageName);

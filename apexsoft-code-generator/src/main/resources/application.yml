@@ -16,7 +16,7 @@ codeGenerator:
     serverSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\java
     mapperXmlSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\resources\mybatis\oracle\jgcrm
     serverTestSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\test\java
-    serverTestOutSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\out\test\classes
+    serverTestDataSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\resources
     # 默认设置
     defaultPackageNamePrefix: com.apexsoft.crm.otheractivity1
     whiteRegExp: czr
