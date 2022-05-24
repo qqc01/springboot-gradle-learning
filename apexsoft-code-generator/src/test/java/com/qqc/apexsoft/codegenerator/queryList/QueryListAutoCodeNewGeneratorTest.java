@@ -64,4 +64,9 @@ public class QueryListAutoCodeNewGeneratorTest {
         queryListAutoCodeNewGenerator.writeMapper();
     }
 
+    @Test
+    public void writeMapperXml() {
+        queryListAutoCodeNewGenerator.writeMapperXml();
+    }
+
 }

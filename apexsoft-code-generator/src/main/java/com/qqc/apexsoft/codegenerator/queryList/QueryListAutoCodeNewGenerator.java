@@ -159,6 +159,12 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         write0(getPath(mainName), getDaoImplAppendString());
     }
 
+    /**
+     * 编写mapper
+     * <p>
+     * 1、没有返回结果集
+     * 2、新增/追加
+     */
     @Override
     public void writeMapper() {
         mainName = "mapper";
@@ -170,9 +176,22 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         write0(getPath(mainName), getMapperAppendString());
     }
 
+    /**
+     * 编写mapperXml
+     * <p>
+     * 1、分页
+     * 2、没有返回结果集
+     * 3、新增/追加
+     */
     @Override
     public void writeMapperXml() {
-
+        mainName = "mapperXml";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getMapperXmlNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getMapperXmlAppendString());
     }
 
     @Override
@@ -845,5 +864,113 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         }
         log.info("mapperAppendString:\n{}", mapperAppendString);
         return mapperAppendString;
+    }
+
+    private String getMapperXmlNewString() {
+        int replaceCount = 0;
+        String mapperXmlNewString = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">\n");
+        sb.append("\n");
+        sb.append(replaceFormat("<mapper namespace=\"{}.mapper.{}Mapper\">\n", replaceCount++, replaceCount));
+        sb.append("</mapper>\n");
+        mapperXmlNewString = replaceAll(sb, configuration.defaultPackageNamePrefix, configuration.upperFunctionName);
+        log.info("mapperXmlNewString:\n{}", mapperXmlNewString);
+        return mapperXmlNewString;
+    }
+
+    private String getMapperXmlAppendString() {
+        int replaceCount = 0;
+        String mapperXmlAppendString = null;
+        StringBuilder sb = new StringBuilder();
+        // parameterMap
+        sb.append(replaceFormat("\t<parameterMap type=\"java.util.Map\" id=\"{}Map\">\n", replaceCount++));
+        // 默认的code和note
+        sb.append("\t\t<parameter javaType=\"java.lang.Integer\" property=\"O_CODE\" mode=\"OUT\" jdbcType=\"INTEGER\"/>\n");
+        sb.append("\t\t<parameter javaType=\"java.lang.String\" property=\"O_NOTE\" mode=\"OUT\" jdbcType=\"VARCHAR\"/>\n");
+        if (pageEnabled() || isReturnResult()) {
+            sb.append(replaceFormat("\t\t<parameter javaType=\"ResultSet\" property=\"O_RESULT\" mode=\"OUT\" jdbcType=\"CURSOR\" resultMap=\"{}Result\"/>\n", 0));
+        }
+        if (pageEnabled()) {
+            sb.append("\t\t<parameter property=\"I_PAGING\" mode=\"IN\" jdbcType=\"INTEGER\"/>\n");
+            sb.append("\t\t<parameter property=\"I_PAGENO\" mode=\"IN\" jdbcType=\"INTEGER\"/>\n");
+            sb.append("\t\t<parameter property=\"I_PAGELENGTH\" mode=\"IN\" jdbcType=\"INTEGER\"/>\n");
+            sb.append("\t\t<parameter property=\"I_TOTALROWS\" mode=\"INOUT\" jdbcType=\"INTEGER\"/>\n");
+            sb.append("\t\t<parameter property=\"I_SORT\" mode=\"IN\" jdbcType=\"VARCHAR\"/>\n");
+        }
+        // 默认的czr
+        sb.append("\t\t<parameter property=\"I_CZR\" mode=\"IN\"/>\n");
+        sb.append(getMapperXmlBody(inList));
+        sb.append("\t</parameterMap>\n");
+
+        // resultMap
+        if (pageEnabled() || isReturnResult()) {
+            sb.append(replaceFormat("\t<resultMap id=\"{}Result\" type=\"{}.{}Record$Builder\">\n", 0, replaceCount++, replaceCount++));
+            sb.append(getMapperXmlResultBody(outList));
+            sb.append("\t</resultMap>\n");
+        }
+
+        // 存储过程调用
+        sb.append(replaceFormat("\t<select id=\"{}\" statementType=\"CALLABLE\" parameterMap=\"{}Map\">\n", 0, 0));
+        sb.append(replaceFormat("\t\tCALL {}({})\n", replaceCount++, replaceCount));
+        sb.append("\t</select>\n");
+        mapperXmlAppendString = replaceAll(sb,
+                configuration.methodName,
+                getPackageName("proto"),
+                configuration.upperMethodName,
+                configuration.procedureName,
+                getMapperXmlProcedureParams());
+        log.info("mapperXmlAppendString:\n{}", mapperXmlAppendString);
+        return mapperXmlAppendString;
+    }
+
+    private String getMapperXmlProcedureParams() {
+        StringBuilder sb = new StringBuilder();
+        // code note
+        sb.append("?,?");
+        // result
+        if (pageEnabled() || isReturnResult()) {
+            sb.append(",?");
+        }
+        // 分页
+        if (pageEnabled()) {
+            sb.append(",?,?,?,?,?");
+        }
+        // czr
+        sb.append(",?");
+        // 入参
+        for (ImportDataModel importDataModel : inList) {
+            if (importDataModel.isList() || importDataModel.getName().matches(configuration.getWhiteRegExp())) {
+                continue;
+            }
+            sb.append(",?");
+        }
+        return sb.toString();
+    }
+
+    private String getMapperXmlResultBody(List<ImportDataModel> outList) {
+        StringBuilder sb = new StringBuilder();
+        for (ImportDataModel importDataModel : outList) {
+            if (importDataModel.isList() || importDataModel.getName().equals("code") || importDataModel.getName().equals("note")) {
+                continue;
+            }
+            sb.append(replaceAll("\t\t<result column=\"{0}\" property=\"{1}\"/>\n",
+                    importDataModel.getProcedureParam(), importDataModel.getName()));
+        }
+        return sb.toString();
+    }
+
+    private String getMapperXmlBody(List<ImportDataModel> importDataModelList) {
+        StringBuilder sb = new StringBuilder();
+        for (ImportDataModel importDataModel : importDataModelList) {
+            if (importDataModel.isList() ||
+                    (StringUtils.isNotBlank(configuration.getWhiteRegExp())
+                            && importDataModel.getName().matches(configuration.getWhiteRegExp()))) {
+                continue;
+            }
+            sb.append(replaceAll("\t\t<parameter property=\"{0}\" mode=\"IN\"/>\n", importDataModel.getProcedureParam()));
+        }
+        return sb.toString();
     }
 }
