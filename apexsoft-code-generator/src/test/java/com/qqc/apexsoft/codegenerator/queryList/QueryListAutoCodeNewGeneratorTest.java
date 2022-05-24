@@ -53,4 +53,14 @@ public class QueryListAutoCodeNewGeneratorTest {
     public void writeDao() {
         queryListAutoCodeNewGenerator.writeDao();
     }
+
+    @Test
+    public void writeDaoImpl() {
+        queryListAutoCodeNewGenerator.writeDaoImpl();
+    }
+
+    @Test
+    public void test() {
+        System.out.println(queryListAutoCodeNewGenerator.getPath("daoImpl"));
+    }
 }

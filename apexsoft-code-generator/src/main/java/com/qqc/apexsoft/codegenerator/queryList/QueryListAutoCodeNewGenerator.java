@@ -142,9 +142,21 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         write0(getPath(mainName), getDaoAppendString());
     }
 
+    /**
+     * 编写daoImpl
+     * <p>
+     * 1、没有返回结果集
+     * 2、新增/追加
+     */
     @Override
     public void writeDaoImpl() {
-
+        mainName = "daoImpl";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getDaoImplNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getDaoImplAppendString());
     }
 
     @Override
@@ -722,5 +734,67 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         }
         log.info("daoAppendString:\n{}", daoAppendString);
         return daoAppendString;
+    }
+
+    private String getDaoImplNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {}.dao.impl;\n", replaceCount++));
+        sb.append("\n");
+        sb.append(replaceFormat("import {}.dao.{}Dao;\n", 0, replaceCount++));
+        sb.append(replaceFormat("import {}.mapper.{}Mapper;\n", 0, 1));
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.slf4j.Logger;\n");
+        sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Qualifier;\n");
+        sb.append("import org.springframework.stereotype.Repository;\n");
+        sb.append("\n");
+        sb.append("import java.util.List;\n");
+        sb.append("import java.util.Map;\n");
+        sb.append("\n");
+        sb.append(getCopyRightString(replaceCount++));
+        sb.append("@Repository\n");
+        sb.append(replaceFormat("public class {}DaoImpl implements {}Dao {\n", 1, 1));
+        sb.append(replaceFormat("private static final Logger log = LoggerFactory.getLogger({}DaoImpl.class);\n", 1));
+        sb.append("\n");
+        sb.append("\t@Autowired\n");
+        sb.append(replaceFormat("\t@Qualifier(\"{}Mapper\")\n", replaceCount++));
+        sb.append(replaceFormat("\tprivate {}Mapper {}Mapper;\n", 1, 4));
+        sb.append("\n");
+        sb.append("}\n");
+        String daoImplNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                configuration.upperFunctionName,
+                getPackageName("proto"),
+                getTime(),
+                configuration.functionName);
+        log.info("daoImplNewString:\n{}", daoImplNewString);
+        return daoImplNewString;
+    }
+
+    private String getDaoImplAppendString() {
+        int replaceCount = 0;
+        String daoImplAppendString = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append("\t@Override\n");
+        if (pageEnabled() || isReturnResult()) {
+            sb.append(replaceFormat("\tpublic List<{}Record.Builder> {}(Map<String, Object> ins) {\n", replaceCount++, replaceCount++));
+            sb.append(replaceFormat("\t\treturn {}Mapper.{}(ins);\n", replaceCount++, 1));
+            sb.append("\t}\n");
+            daoImplAppendString = replaceAll(sb,
+                    configuration.upperMethodName,
+                    configuration.methodName,
+                    configuration.functionName);
+        } else {
+            sb.append(replaceFormat("public void {}(Map<String, Object> ins) {\n", replaceCount++));
+            sb.append(replaceFormat("\t\t{}Mapper.{}(ins);\n", replaceCount++, 0));
+            sb.append("\t}\n");
+            daoImplAppendString = replaceAll(sb,
+                    configuration.methodName,
+                    configuration.functionName);
+        }
+        log.info("daoImplAppendString:\n{}", daoImplAppendString);
+        return daoImplAppendString;
     }
 }
