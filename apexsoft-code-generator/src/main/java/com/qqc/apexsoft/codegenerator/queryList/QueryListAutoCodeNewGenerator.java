@@ -90,6 +90,11 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         write0(getPath(mainName), getControllerAppendString());
     }
 
+    /**
+     * 编写consumer
+     * <p>
+     * 1.新增/追加
+     */
     @Override
     public void writeConsumer() {
         mainName = "consumer";
@@ -101,9 +106,23 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         write0(getPath(mainName), getConsumerAppendString());
     }
 
+    /**
+     * 编写provider
+     * <p>
+     * 1、分页
+     * 2、入参、出差包含list（建议定制开发，不支持）
+     * 3、没有返回结果集
+     * 4、新增/追加
+     */
     @Override
     public void writeProvider() {
-
+        mainName = "provider";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getProviderNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getProviderAppendString());
     }
 
     @Override
@@ -141,6 +160,55 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     }
 
+    /**
+     * 是否Get请求，默认false
+     */
+    private boolean isGet = false;
+
+    public boolean isGet() {
+        return isGet;
+    }
+
+    public void setGet(boolean get) {
+        isGet = get;
+    }
+
+    public String getTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        return sdf.format(new Date());
+    }
+
+    private String getCopyRightString(int replaceCount) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("/**\n");
+        sb.append(" * @author qqc\n");
+        sb.append(replaceFormat(" * @create {}\n", replaceCount));
+        sb.append(" * @description\n");
+        sb.append(" */\n");
+        return sb.toString();
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        fileCheck();
+    }
+
+    public void config() {
+        // 入参
+        List<ImportDataModel> inList = getDataList(0);
+        setInList(inList);
+        log.info("setInList:{}", JSONUtil.getJSONStandardString(inList));
+        // 出参
+        List<ImportDataModel> outList = getDataList(1);
+        setOutList(outList);
+        log.info("setOutList:{}", JSONUtil.getJSONStandardString(outList));
+    }
+
+    @Override
+    protected boolean isList(Object obj) {
+        return String.valueOf(obj).matches(".*(l|L)ist.*");
+    }
+
     private String getProtoNewString() {
         StringBuilder sb = new StringBuilder();
         sb.append("syntax = \"proto3\";\n");
@@ -160,7 +228,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         // 1 req
         sb.append("message {1}Req {\n");
         // 1.1 分页
-        if (getPageEnabled()) {
+        if (pageEnabled()) {
             sb.append("\t//是否分页\n").append(replaceAll("\tint32 paging = {0};\n", fieldIndex++));
             sb.append("\t//页码\n").append(replaceAll("\tint32 current = {0};\n", fieldIndex++));
             sb.append("\t//页长\n").append(replaceAll("\tint32 pageSize = {0};\n", fieldIndex++));
@@ -178,26 +246,25 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("message {1}Rsp {\n");
         sb.append(replaceAll("\tint32 code = {0}; //返回值\n", fieldIndex++));
         sb.append(replaceAll("\tstring note = {0}; //返回消息\n", fieldIndex++));
-        // 2.1 分页
-        if (getPageEnabled()) {
+        // 2.1 分页和结果集返回
+        if (pageEnabled()) {
             sb.append(replaceAll("\tint32 total = {0}; //总记录数\n", fieldIndex++));
-            sb.append(replaceAll("\trepeated {1}Record records = {0}; //返回结果集\n", fieldIndex++));
         }
-        // 2.2 不分页返回结果集
-        if (!getPageEnabled() && getIsReturnResult()) {
-            // 2.3是否返回结果集
+        if (pageEnabled() || isReturnResult()) {
             sb.append(replaceAll("\trepeated {1}Record records = {0}; //返回结果集\n", fieldIndex++));
+            sb.append("}\n");
+            sb.append("\n");
+            // 3 rsp data
+            sb.append("message {1}Record {\n");
+            sb.append(getProtoBody(outList, "code|note"));
+            sb.append("}\n");
+            // 3.1 空行
+            sb.append("\n");
+        } else {
+            sb.append("}\n");
+            // 2.4 空行
+            sb.append("\n");
         }
-        sb.append("}\n");
-        // 2.4 空行
-        sb.append("\n");
-
-        // 3 rsp data
-        sb.append("message {1}Record {\n");
-        sb.append(getProtoBody(outList, "code|note"));
-        sb.append("}\n");
-        // 3.1 空行
-        sb.append("\n");
 
         // 4 list
         for (ImportDataModel importDataModel : getAllList()) {
@@ -224,177 +291,6 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         String protoRPCAppendString = replaceAll(sb, configuration.methodDesc, configuration.methodName, configuration.upperMethodName);
         log.info("构建protoRPCAppendString:\n{}", protoRPCAppendString);
         return protoRPCAppendString;
-    }
-
-    public void writeModel(String path, List<ImportDataModel> list) {
-        if (CollectionUtils.isEmpty(list)) {
-            throw new AutoCodeGeneratorException("list数据为空！！！");
-        }
-        write0(path, getModelNewString(list));
-        List<ImportDataModel> childList = list.stream().filter(ImportDataModel::isList).collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(childList)) {
-            for (ImportDataModel importDataModel : childList) {
-                setModelName(importDataModel.getListObjName());
-                setModelDesc(importDataModel.getDesc());
-                writeModel(getPath("model"), importDataModel.getListData());
-            }
-        }
-    }
-
-    private String getModelNewString(List<ImportDataModel> importDataModelList) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("package {0};\n");
-        sb.append("\n");
-        sb.append("import com.apexsoft.crm.base.model.PagerModel;\n");
-        sb.append("import io.swagger.annotations.ApiModel;\n");
-        sb.append("import io.swagger.annotations.ApiModelProperty;\n");
-        sb.append("\n");
-        sb.append("import java.util.List;\n");
-        sb.append("\n");
-        sb.append("@ApiModel(description = \"{1}\")\n");
-        // 分页控制
-        if (getPageEnabled()) {
-            sb.append("public class {2} extends PagerModel {\n");
-        } else {
-            sb.append("public class {2} {\n");
-        }
-        // 实例变量
-        sb.append(getModelBody(importDataModelList));
-        // getter and setter
-        // 默认操作人
-        sb.append("\n");
-        sb.append(getModelGetterAndSetter(importDataModelList));
-        // 去除最后一个空行
-        deleteEnd(sb);
-        sb.append("}\n");
-        String newModelString = replaceAll(sb, getPackageName(mainName), getModelDesc(), getModelName());
-        log.info("构建newModelString:\n{}", newModelString);
-        return newModelString;
-    }
-
-    private String getControllerNewString() {
-        int replaceCount = 0;
-        StringBuilder sb = new StringBuilder();
-        sb.append(replaceFormat("package {};\n", replaceCount++));
-        sb.append("\n");
-        sb.append("import com.apexsoft.crm.ams.annotation.ApiPost;\n");
-        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
-        sb.append(replaceFormat("import {}.{}Consumer;\n", replaceCount++, replaceCount++));
-        sb.append("import io.swagger.annotations.Api;\n");
-        sb.append("import io.swagger.annotations.ApiOperation;\n");
-        sb.append("import io.swagger.annotations.ApiParam;\n");
-        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
-        sb.append("import org.slf4j.Logger;\n");
-        sb.append("import org.slf4j.LoggerFactory;\n");
-        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
-        sb.append("import org.springframework.web.bind.annotation.PostMapping;\n");
-        sb.append("import org.springframework.web.bind.annotation.RequestBody;\n");
-        sb.append("import org.springframework.web.bind.annotation.RequestMapping;\n");
-        sb.append("import org.springframework.web.bind.annotation.RestController;\n");
-        sb.append("\n");
-        sb.append("/**\n");
-        sb.append(" * @author qqc\n");
-        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
-        sb.append(" * @description\n");
-        sb.append(" */\n");
-        sb.append("@RestController\n");
-        sb.append(replaceFormat("@RequestMapping(value = \"/{}\")\n", replaceCount++));
-        sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
-        sb.append(replaceFormat("public class {}Controller {\n", 3));
-        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
-        sb.append("\n");
-        sb.append("\t@Autowired\n");
-        sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n",3, 6));
-        sb.append("}\n");
-        String controllerNewString = replaceAll(sb,
-                getPackageName(mainName),
-                getPackageName("model"),
-                getPackageName("consumer"),
-                configuration.upperFunctionName,
-                getPackageName("proto"),
-                getTime(),
-                configuration.functionName,
-                configuration.functionDesc);
-        log.info("controllerNewString:\n{}", controllerNewString);
-        return controllerNewString;
-    }
-
-    private String getControllerAppendString() {
-        int replaceCount = 0;
-        StringBuilder sb = new StringBuilder();
-        if (isGet()) {
-            sb.append(replaceFormat("\t@RequestMapping(value = \"/v1/{}\", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)\n", replaceCount++));
-        } else {
-            sb.append(replaceFormat("\t@ApiPost( \"/v1/{}\")\n", replaceCount++));
-        }
-        sb.append(replaceFormat("\t@ApiOperation(value = \"{}\")\n", replaceCount++));
-        sb.append(replaceFormat("\tpublic {}Rsp {}(@ApiParam(value = \"入参JSON\") @RequestBody {}Model model) {\n", replaceCount++, 0, 2));
-        sb.append(replaceFormat("\t\treturn {}Consumer.{}(model);\n", replaceCount++, 0));
-        sb.append("\t}\n");
-        String controllerAppendString = replaceAll(sb,
-                configuration.methodName,
-                configuration.methodDesc,
-                configuration.upperMethodName,
-                configuration.functionName);
-        log.info("controllerAppendString:\n{}", controllerAppendString);
-        return controllerAppendString;
-    }
-
-    private String getConsumerNewString() {
-        int replaceCount = 0;
-        StringBuilder sb = new StringBuilder();
-        sb.append(replaceFormat("package {}.service;\n", replaceCount++));
-        sb.append("\n");
-        sb.append("import com.apex.ams.annotation.AmsBlockingStub;\n");
-        sb.append("import com.apexsoft.crm.auth.util.UserHelper;\n");
-        sb.append(replaceFormat("import {}.model.*;\n",0));
-        sb.append("import com.apexsoft.utils.ParamUtils;\n");
-        sb.append("import com.apexsoft.utils.ProtoBufUtil;\n");
-        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
-        sb.append("import org.apache.commons.lang3.StringUtils;\n");
-        sb.append("import org.slf4j.Logger;\n");
-        sb.append("import org.slf4j.LoggerFactory;\n");
-        sb.append("\n");
-        sb.append("import java.util.List;\n");
-        sb.append("\n");
-        sb.append("/**\n");
-        sb.append(" * @author qqc\n");
-        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
-        sb.append(" * @description\n");
-        sb.append(" */\n");
-        sb.append("@Service\n");
-        sb.append(replaceFormat("public class {}Consumer {\n", replaceCount++));
-        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Consumer.class);\n", 3));
-        sb.append("\n");
-        sb.append("\t@AmsBlockingStub\n");
-        sb.append(replaceFormat("\tprivate {}ServiceGrpc.{}ServiceBlockingStub {}ServiceBlockingStub;\n", 3, 3, replaceCount++));
-        sb.append("}\n");
-        String consumerNewString = replaceAll(sb,
-                configuration.defaultPackageNamePrefix,
-                getPackageName("proto"),
-                getTime(),
-                configuration.upperFunctionName,
-                configuration.functionName);
-        log.info("consumerNewString:\n{}", consumerNewString);
-        return consumerNewString;
-    }
-
-    private String getConsumerAppendString() {
-        int replaceCount = 0;
-        StringBuilder sb = new StringBuilder();
-        sb.append(replaceFormat("\tpublic {}Rsp {}({}Model model) {\n", replaceCount++, replaceCount++, 0));
-        sb.append(replaceFormat("\t\t{}Req.Builder request = {}Req.newBuilder();\n", 0, 0));
-        sb.append("\t\tProtoBufUtil.transform(model, request);\n");
-        sb.append("\t\trequest.setCzr(UserHelper.getId());\n");
-        sb.append(replaceFormat("\t\treturn {}ServiceBlockingStub.{}(request.build());\n", replaceCount++, replaceCount++));
-        sb.append("\t}\n");
-        String consumerAppendString = replaceAll(sb,
-                configuration.upperMethodName,
-                configuration.methodName,
-                configuration.functionName,
-                configuration.methodName);
-        log.info("consumerAppendString:\n{}", consumerAppendString);
-        return consumerAppendString;
     }
 
     private String getProtoBody(List<ImportDataModel> list) {
@@ -431,6 +327,52 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             result.append(replaceAll(sb, strings));
         }
         return result.toString();
+    }
+
+    public void writeModel(String path, List<ImportDataModel> list) {
+        if (CollectionUtils.isEmpty(list)) {
+            throw new AutoCodeGeneratorException("list数据为空！！！");
+        }
+        write0(path, getModelNewString(list));
+        List<ImportDataModel> childList = list.stream().filter(ImportDataModel::isList).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(childList)) {
+            for (ImportDataModel importDataModel : childList) {
+                setModelName(importDataModel.getListObjName());
+                setModelDesc(importDataModel.getDesc());
+                writeModel(getPath("model"), importDataModel.getListData());
+            }
+        }
+    }
+
+    private String getModelNewString(List<ImportDataModel> importDataModelList) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("package {0};\n");
+        sb.append("\n");
+        sb.append("import com.apexsoft.crm.base.model.PagerModel;\n");
+        sb.append("import io.swagger.annotations.ApiModel;\n");
+        sb.append("import io.swagger.annotations.ApiModelProperty;\n");
+        sb.append("\n");
+        sb.append("import java.util.List;\n");
+        sb.append("\n");
+        sb.append("@ApiModel(description = \"{1}\")\n");
+        // 分页控制
+        if (pageEnabled()) {
+            sb.append("public class {2} extends PagerModel {\n");
+        } else {
+            sb.append("public class {2} {\n");
+        }
+        // 实例变量
+        sb.append(getModelBody(importDataModelList));
+        // getter and setter
+        // 默认操作人
+        sb.append("\n");
+        sb.append(getModelGetterAndSetter(importDataModelList));
+        // 去除最后一个空行
+        deleteEnd(sb);
+        sb.append("}\n");
+        String newModelString = replaceAll(sb, getPackageName(mainName), getModelDesc(), getModelName());
+        log.info("构建newModelString:\n{}", newModelString);
+        return newModelString;
     }
 
     private String getModelBody(List<ImportDataModel> list) {
@@ -498,42 +440,227 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         return sb.toString();
     }
 
-    public void config() {
-        // 入参
-        List<ImportDataModel> inList = getDataList(0);
-        setInList(inList);
-        log.info("setInList:{}", JSONUtil.getJSONStandardString(inList));
-        // 出参
-        List<ImportDataModel> outList = getDataList(1);
-        setOutList(outList);
-        log.info("setOutList:{}", JSONUtil.getJSONStandardString(outList));
+    private String getControllerNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {};\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import com.apexsoft.crm.ams.annotation.ApiPost;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append(replaceFormat("import {}.{}Consumer;\n", replaceCount++, replaceCount++));
+        sb.append("import io.swagger.annotations.Api;\n");
+        sb.append("import io.swagger.annotations.ApiOperation;\n");
+        sb.append("import io.swagger.annotations.ApiParam;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.slf4j.Logger;\n");
+        sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
+        sb.append("import org.springframework.web.bind.annotation.PostMapping;\n");
+        sb.append("import org.springframework.web.bind.annotation.RequestBody;\n");
+        sb.append("import org.springframework.web.bind.annotation.RequestMapping;\n");
+        sb.append("import org.springframework.web.bind.annotation.RestController;\n");
+        sb.append("\n");
+        sb.append("/**\n");
+        sb.append(" * @author qqc\n");
+        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
+        sb.append(" * @description\n");
+        sb.append(" */\n");
+        sb.append("@RestController\n");
+        sb.append(replaceFormat("@RequestMapping(value = \"/{}\")\n", replaceCount++));
+        sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
+        sb.append(replaceFormat("public class {}Controller {\n", 3));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
+        sb.append("\n");
+        sb.append("\t@Autowired\n");
+        sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n", 3, 6));
+        sb.append("}\n");
+        String controllerNewString = replaceAll(sb,
+                getPackageName(mainName),
+                getPackageName("model"),
+                getPackageName("consumer"),
+                configuration.upperFunctionName,
+                getPackageName("proto"),
+                getTime(),
+                configuration.functionName,
+                configuration.functionDesc);
+        log.info("controllerNewString:\n{}", controllerNewString);
+        return controllerNewString;
     }
 
-    @Override
-    protected boolean isList(Object obj) {
-        return String.valueOf(obj).matches(".*(l|L)ist.*");
+    private String getControllerAppendString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        if (isGet()) {
+            sb.append(replaceFormat("\t@RequestMapping(value = \"/v1/{}\", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)\n", replaceCount++));
+        } else {
+            sb.append(replaceFormat("\t@ApiPost( \"/v1/{}\")\n", replaceCount++));
+        }
+        sb.append(replaceFormat("\t@ApiOperation(value = \"{}\")\n", replaceCount++));
+        sb.append(replaceFormat("\tpublic {}Rsp {}(@ApiParam(value = \"入参JSON\") @RequestBody {}Model model) {\n", replaceCount++, 0, 2));
+        sb.append(replaceFormat("\t\treturn {}Consumer.{}(model);\n", replaceCount++, 0));
+        sb.append("\t}\n");
+        String controllerAppendString = replaceAll(sb,
+                configuration.methodName,
+                configuration.methodDesc,
+                configuration.upperMethodName,
+                configuration.functionName);
+        log.info("controllerAppendString:\n{}", controllerAppendString);
+        return controllerAppendString;
     }
 
-    /**
-     * 是否Get请求，默认false
-     */
-    private boolean isGet = false;
-
-    public boolean isGet() {
-        return isGet;
+    private String getConsumerNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {}.service;\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import com.apex.ams.annotation.AmsBlockingStub;\n");
+        sb.append("import com.apexsoft.crm.auth.util.UserHelper;\n");
+        sb.append(replaceFormat("import {}.model.*;\n", 0));
+        sb.append("import com.apexsoft.utils.ParamUtils;\n");
+        sb.append("import com.apexsoft.utils.ProtoBufUtil;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.apache.commons.lang3.StringUtils;\n");
+        sb.append("import org.slf4j.Logger;\n");
+        sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("\n");
+        sb.append("import java.util.List;\n");
+        sb.append("\n");
+        sb.append("/**\n");
+        sb.append(" * @author qqc\n");
+        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
+        sb.append(" * @description\n");
+        sb.append(" */\n");
+        sb.append("@Service\n");
+        sb.append(replaceFormat("public class {}Consumer {\n", replaceCount++));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Consumer.class);\n", 3));
+        sb.append("\n");
+        sb.append("\t@AmsBlockingStub\n");
+        sb.append(replaceFormat("\tprivate {}ServiceGrpc.{}ServiceBlockingStub {}ServiceBlockingStub;\n", 3, 3, replaceCount++));
+        sb.append("}\n");
+        String consumerNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                getPackageName("proto"),
+                getTime(),
+                configuration.upperFunctionName,
+                configuration.functionName);
+        log.info("consumerNewString:\n{}", consumerNewString);
+        return consumerNewString;
     }
 
-    public void setGet(boolean get) {
-        isGet = get;
+    private String getConsumerAppendString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("\tpublic {}Rsp {}({}Model model) {\n", replaceCount++, replaceCount++, 0));
+        sb.append(replaceFormat("\t\t{}Req.Builder request = {}Req.newBuilder();\n", 0, 0));
+        sb.append("\t\tProtoBufUtil.transform(model, request);\n");
+        sb.append("\t\trequest.setCzr(UserHelper.getId());\n");
+        sb.append(replaceFormat("\t\treturn {}ServiceBlockingStub.{}(request.build());\n", replaceCount++, replaceCount++));
+        sb.append("\t}\n");
+        String consumerAppendString = replaceAll(sb,
+                configuration.upperMethodName,
+                configuration.methodName,
+                configuration.functionName,
+                configuration.methodName);
+        log.info("consumerAppendString:\n{}", consumerAppendString);
+        return consumerAppendString;
     }
 
-    public String getTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-        return sdf.format(new Date());
+    private String getProviderNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {}.provider;\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import com.apex.ams.server.AmsService;\n");
+        sb.append(replaceFormat("import {}.dao.{}Dao;\n", 0, replaceCount++));
+        sb.append("import com.apexsoft.utils.ParamUtils;\n");
+        sb.append("import com.apexsoft.utils.ProtoBufUtil;\n");
+        sb.append("import io.grpc.Status;\n");
+        sb.append("import io.grpc.StatusException;\n");
+        sb.append("import io.grpc.stub.StreamObserver;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.apache.commons.collections.CollectionUtils;\n");
+        sb.append("import org.apache.commons.lang3.StringUtils;\n");
+        sb.append("import org.slf4j.Logger;\n");
+        sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
+        sb.append("\n");
+        sb.append("import java.util.List;\n");
+        sb.append("\n");
+        sb.append(getCopyRightString(replaceCount++));
+        sb.append("@AmsService\n");
+        sb.append(replaceFormat("public class {}Provider extends {}ServiceGrpc.{}ServiceImplBase{\n", 1, 1, 1));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Provider.class);\n", 1));
+        sb.append("\t@Autowired\n");
+        sb.append(replaceFormat("\tprivate {}Dao {}Dao;\n", 1, replaceCount++));
+        sb.append("}\n");
+        String providerNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                configuration.upperFunctionName,
+                getPackageName("proto"),
+                getTime(),
+                configuration.functionName);
+        log.info("providerNewString:\n{}", providerNewString);
+        return providerNewString;
     }
 
-    @Override
-    public void afterPropertiesSet() {
-        fileCheck();
+    private String getProviderAppendString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append("\t@Override\n");
+        sb.append(replaceFormat("\tpublic void {}({}Req request, StreamObserver<{}Rsp> responseObserver) {\n", replaceCount++, replaceCount++, 1));
+        sb.append(replaceFormat("\t\t{}Rsp.Builder rsp = {}Rsp.newBuilder();\n", 1, 1));
+        sb.append("\t\tMap<String, Object> ins = new HashMap<>();\n");
+        // 分页
+        if (pageEnabled()) {
+            sb.append("\t\tins.put(\"I_PAGING\", request.getPaging());\n");
+            sb.append("\t\tins.put(\"I_PAGENO\", request.getCurrent());\n");
+            sb.append("\t\tins.put(\"I_PAGELENGTH\", request.getPageSize());\n");
+            sb.append("\t\tins.put(\"I_TOTALROWS\", request.getTotal());\n");
+            sb.append("\t\tins.put(\"I_SORT\", request.getSort());\n");
+        }
+        // 默认必传的 crz
+        sb.append("\t\tins.put(\"I_CZR\", request.getCzr());\n");
+        sb.append(getProviderBody(inList));
+        // 是否返回结果集
+        if (pageEnabled() || isReturnResult()) {
+            sb.append(replaceFormat("\t\tList<{}Record.Builder> resultList = {}Dao.{}(ins);\n", 1, 2, 0));
+            // 是否分页字段
+            if (pageEnabled()) {
+                sb.append("\t\tMap<String, Object> map = ProtoBufUtil.transformMap(ins);\n");
+            } else {
+                sb.append("\t\tMap<String, Object> map = ProtoBufUtil.transformMap2(ins);\n");
+            }
+            // 遍历添加结果集
+            sb.append("\t\tresultList.forEach(builder -> {\n");
+            sb.append("\t\t\tif (builder != null) {\n");
+            sb.append("\t\t\t\trsp.addRecords(builder);\n");
+            sb.append("\t\t\t}\n");
+            sb.append("\t\t});\n");
+        } else {
+            sb.append(replaceFormat("\t\t{}Dao.{}(ins);\n", 2, 0));
+            sb.append("\t\tMap<String, Object> map = ProtoBufUtil.transformMap2(ins);\n");
+            sb.append("\t\tProtoBufUtil.transform(map, rsp);\n");
+        }
+        sb.append("\t\tresponseObserver.onNext(rsp.build());\n");
+        sb.append("\t\tresponseObserver.onCompleted();\n");
+        sb.append("\t}\n");
+        String providerAppendString = replaceAll(sb,
+                configuration.methodName,
+                configuration.upperMethodName,
+                configuration.functionName);
+        log.info("providerAppendString:\n{}", providerAppendString);
+        return providerAppendString;
+    }
+
+    private String getProviderBody(List<ImportDataModel> importDataModelList) {
+        StringBuilder sb = new StringBuilder();
+        for (ImportDataModel importDataModel : importDataModelList) {
+            if (importDataModel.isList() || (StringUtils.isNotBlank(configuration.getWhiteRegExp())
+                    && importDataModel.getName().matches(configuration.getWhiteRegExp()))) {
+                continue;
+            }
+            sb.append(replaceAll("\t\tins.put(\"{0}\", request.get{1}());\n", importDataModel.getProcedureParam(), upper(importDataModel.getName())));
+        }
+        return sb.toString();
     }
 }

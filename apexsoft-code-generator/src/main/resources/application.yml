@@ -1,6 +1,6 @@
 codeGenerator:
     # 业务配置
-    functionName: otherService1
+    functionName: performanceManage
     functionDesc: 机构C5-服务模块基础微服务
     methodName: queryCusMaintainList1
     methodDesc: 客户维护查询

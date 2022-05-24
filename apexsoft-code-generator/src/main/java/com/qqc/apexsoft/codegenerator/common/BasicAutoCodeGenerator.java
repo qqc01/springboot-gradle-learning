@@ -140,6 +140,7 @@ public class BasicAutoCodeGenerator {
             ImportDataModel importDataModel = new ImportDataModel();
             importDataModel.setName(name);
             importDataModel.setDesc(desc);
+            importDataModel.setProcedureParam(map.get(1));
             importDataModel.setType(ImportDataType.COMMON);
             importDataModel.setRow(map);
             if (isList(name)) {
@@ -404,11 +405,11 @@ public class BasicAutoCodeGenerator {
         return configuration.isCreateFile;
     }
 
-    public boolean getIsReturnResult() {
+    public boolean isReturnResult() {
         return configuration.isReturnResult;
     }
 
-    public boolean getPageEnabled() {
+    public boolean pageEnabled() {
         return configuration.pageEnabled;
     }
 

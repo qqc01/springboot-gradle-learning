@@ -43,4 +43,9 @@ public class QueryListAutoCodeNewGeneratorTest {
     public void writeConsumer() {
         queryListAutoCodeNewGenerator.writeConsumer();
     }
+
+    @Test
+    public void writeProvider() {
+        queryListAutoCodeNewGenerator.writeProvider();
+    }
 }
