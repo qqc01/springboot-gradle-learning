@@ -90,77 +90,15 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         write0(getPath(mainName), getControllerAppendString());
     }
 
-    private String getControllerNewString() {
-        int replaceCount = 0;
-        StringBuilder sb = new StringBuilder();
-        sb.append(replaceFormat("package {};\n", replaceCount++));
-        sb.append("\n");
-        sb.append("import com.apexsoft.crm.ams.annotation.ApiPost;\n");
-        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
-        sb.append(replaceFormat("import {}.{}Consumer;\n", replaceCount++, replaceCount++));
-        sb.append("import io.swagger.annotations.Api;\n");
-        sb.append("import io.swagger.annotations.ApiOperation;\n");
-        sb.append("import io.swagger.annotations.ApiParam;\n");
-        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
-        sb.append("import org.slf4j.Logger;\n");
-        sb.append("import org.slf4j.LoggerFactory;\n");
-        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
-        sb.append("import org.springframework.web.bind.annotation.PostMapping;\n");
-        sb.append("import org.springframework.web.bind.annotation.RequestBody;\n");
-        sb.append("import org.springframework.web.bind.annotation.RequestMapping;\n");
-        sb.append("import org.springframework.web.bind.annotation.RestController;\n");
-        sb.append("\n");
-        sb.append("/**\n");
-        sb.append(" * @author qqc\n");
-        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
-        sb.append(" * @description\n");
-        sb.append(" */\n");
-        sb.append("@RestController\n");
-        sb.append(replaceFormat("@RequestMapping(value = \"/{}\")\n", replaceCount++));
-        sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
-        sb.append(replaceFormat("public class {}Controller {\n", 3));
-        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
-        sb.append("\n");
-        sb.append("\t@Autowired\n");
-        sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n",3, 6));
-        sb.append("}\n");
-        String controllerNewString = replaceAll(sb,
-                getPackageName(mainName),
-                getPackageName("model"),
-                getPackageName("consumer"),
-                configuration.upperFunctionName,
-                getPackageName("proto"),
-                getTime(),
-                configuration.functionName,
-                configuration.functionDesc);
-        log.info("controllerNewString:\n{}", controllerNewString);
-        return controllerNewString;
-    }
-
-    private String getControllerAppendString() {
-        int replaceCount = 0;
-        StringBuilder sb = new StringBuilder();
-        if (isGet()) {
-            sb.append(replaceFormat("\t@RequestMapping(value = \"/v1/{}\", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)\n", replaceCount++));
-        } else {
-            sb.append(replaceFormat("\t@ApiPost( \"/v1/{}\")\n", replaceCount++));
-        }
-        sb.append(replaceFormat("\t@ApiOperation(value = \"{}\")\n", replaceCount++));
-        sb.append(replaceFormat("\tpublic {}Rsp {}(@ApiParam(value = \"入参JSON\") @RequestBody {}Model model) {\n", replaceCount++, 0, 2));
-        sb.append(replaceFormat("\t\treturn {}Consumer.cusMaintainLocking(model);\n", replaceCount++));
-        sb.append("\t}\n");
-        String controllerAppendString = replaceAll(sb,
-                configuration.methodName,
-                configuration.methodDesc,
-                configuration.upperMethodName,
-                configuration.functionName);
-        log.info("controllerAppendString:\n{}", controllerAppendString);
-        return controllerAppendString;
-    }
-
     @Override
     public void writeConsumer() {
-
+        mainName = "consumer";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getConsumerNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getConsumerAppendString());
     }
 
     @Override
@@ -203,42 +141,6 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     }
 
-    private String getProtoBody(List<ImportDataModel> list) {
-        return getProtoBody(list, configuration.getWhiteRegExp());
-    }
-
-    private String getProtoBody(List<ImportDataModel> list, String whiteRegExp) {
-        StringBuilder result = new StringBuilder();
-        String[] strings = new String[4];
-        for (ImportDataModel importDataModel : list) {
-            StringBuilder sb = new StringBuilder();
-            String fieldName = importDataModel.getName();
-            String fieldDesc = importDataModel.getDesc();
-            String listObjName = importDataModel.getListObjName();
-            if (importDataModel.getType().equals(ImportDataType.COMMON)) {
-                if (!StringUtils.isBlank(whiteRegExp) && fieldName.matches(whiteRegExp)) {
-                    continue;
-                }
-                strings[0] = fieldDesc;
-                strings[1] = fieldName.equals("czr") ? "int32" : "string";
-                strings[2] = fieldName;
-                strings[3] = String.valueOf(fieldIndex++);
-                // 操作人 int32 czr = 1;
-                sb.append("\t// {0}\n").append("\t{1} {2} = {3};\n");
-            }
-            if (importDataModel.getType().equals(ImportDataType.LIST)) {
-                strings[0] = "repeated";
-                strings[1] = listObjName;
-                strings[2] = fieldName;
-                strings[3] = String.valueOf(fieldIndex++);
-                // repeated CollaborgInfoNew2 list1 = 9;
-                sb.append("\t{0} {1} {2} = {3};\n");
-            }
-            result.append(replaceAll(sb, strings));
-        }
-        return result.toString();
-    }
-
     private String getProtoNewString() {
         StringBuilder sb = new StringBuilder();
         sb.append("syntax = \"proto3\";\n");
@@ -250,14 +152,6 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("}\n");
         log.info("构建protoNewString:\n{}", sb);
         return sb.toString();
-    }
-
-    public String getProtoRPCAppendString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\t//{0}\n").append("\trpc {1} ({2}Req) returns ({2}Rsp) {};\n");
-        String protoRPCAppendString = replaceAll(sb, configuration.methodDesc, configuration.methodName, configuration.upperMethodName);
-        log.info("构建protoRPCAppendString:\n{}", protoRPCAppendString);
-        return protoRPCAppendString;
     }
 
     public String getProtoAppendString() {
@@ -324,6 +218,14 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         return protoAppendString;
     }
 
+    public String getProtoRPCAppendString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\t//{0}\n").append("\trpc {1} ({2}Req) returns ({2}Rsp) {};\n");
+        String protoRPCAppendString = replaceAll(sb, configuration.methodDesc, configuration.methodName, configuration.upperMethodName);
+        log.info("构建protoRPCAppendString:\n{}", protoRPCAppendString);
+        return protoRPCAppendString;
+    }
+
     public void writeModel(String path, List<ImportDataModel> list) {
         if (CollectionUtils.isEmpty(list)) {
             throw new AutoCodeGeneratorException("list数据为空！！！");
@@ -368,6 +270,167 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         String newModelString = replaceAll(sb, getPackageName(mainName), getModelDesc(), getModelName());
         log.info("构建newModelString:\n{}", newModelString);
         return newModelString;
+    }
+
+    private String getControllerNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {};\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import com.apexsoft.crm.ams.annotation.ApiPost;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append(replaceFormat("import {}.{}Consumer;\n", replaceCount++, replaceCount++));
+        sb.append("import io.swagger.annotations.Api;\n");
+        sb.append("import io.swagger.annotations.ApiOperation;\n");
+        sb.append("import io.swagger.annotations.ApiParam;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.slf4j.Logger;\n");
+        sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
+        sb.append("import org.springframework.web.bind.annotation.PostMapping;\n");
+        sb.append("import org.springframework.web.bind.annotation.RequestBody;\n");
+        sb.append("import org.springframework.web.bind.annotation.RequestMapping;\n");
+        sb.append("import org.springframework.web.bind.annotation.RestController;\n");
+        sb.append("\n");
+        sb.append("/**\n");
+        sb.append(" * @author qqc\n");
+        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
+        sb.append(" * @description\n");
+        sb.append(" */\n");
+        sb.append("@RestController\n");
+        sb.append(replaceFormat("@RequestMapping(value = \"/{}\")\n", replaceCount++));
+        sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
+        sb.append(replaceFormat("public class {}Controller {\n", 3));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
+        sb.append("\n");
+        sb.append("\t@Autowired\n");
+        sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n",3, 6));
+        sb.append("}\n");
+        String controllerNewString = replaceAll(sb,
+                getPackageName(mainName),
+                getPackageName("model"),
+                getPackageName("consumer"),
+                configuration.upperFunctionName,
+                getPackageName("proto"),
+                getTime(),
+                configuration.functionName,
+                configuration.functionDesc);
+        log.info("controllerNewString:\n{}", controllerNewString);
+        return controllerNewString;
+    }
+
+    private String getControllerAppendString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        if (isGet()) {
+            sb.append(replaceFormat("\t@RequestMapping(value = \"/v1/{}\", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)\n", replaceCount++));
+        } else {
+            sb.append(replaceFormat("\t@ApiPost( \"/v1/{}\")\n", replaceCount++));
+        }
+        sb.append(replaceFormat("\t@ApiOperation(value = \"{}\")\n", replaceCount++));
+        sb.append(replaceFormat("\tpublic {}Rsp {}(@ApiParam(value = \"入参JSON\") @RequestBody {}Model model) {\n", replaceCount++, 0, 2));
+        sb.append(replaceFormat("\t\treturn {}Consumer.{}(model);\n", replaceCount++, 0));
+        sb.append("\t}\n");
+        String controllerAppendString = replaceAll(sb,
+                configuration.methodName,
+                configuration.methodDesc,
+                configuration.upperMethodName,
+                configuration.functionName);
+        log.info("controllerAppendString:\n{}", controllerAppendString);
+        return controllerAppendString;
+    }
+
+    private String getConsumerNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {}.service;\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import com.apex.ams.annotation.AmsBlockingStub;\n");
+        sb.append("import com.apexsoft.crm.auth.util.UserHelper;\n");
+        sb.append(replaceFormat("import {}.model.*;\n",0));
+        sb.append("import com.apexsoft.utils.ParamUtils;\n");
+        sb.append("import com.apexsoft.utils.ProtoBufUtil;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.apache.commons.lang3.StringUtils;\n");
+        sb.append("import org.slf4j.Logger;\n");
+        sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("\n");
+        sb.append("import java.util.List;\n");
+        sb.append("\n");
+        sb.append("/**\n");
+        sb.append(" * @author qqc\n");
+        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
+        sb.append(" * @description\n");
+        sb.append(" */\n");
+        sb.append("@Service\n");
+        sb.append(replaceFormat("public class {}Consumer {\n", replaceCount++));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Consumer.class);\n", 3));
+        sb.append("\n");
+        sb.append("\t@AmsBlockingStub\n");
+        sb.append(replaceFormat("\tprivate {}ServiceGrpc.{}ServiceBlockingStub {}ServiceBlockingStub;\n", 3, 3, replaceCount++));
+        sb.append("}\n");
+        String consumerNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                getPackageName("proto"),
+                getTime(),
+                configuration.upperFunctionName,
+                configuration.functionName);
+        log.info("consumerNewString:\n{}", consumerNewString);
+        return consumerNewString;
+    }
+
+    private String getConsumerAppendString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("\tpublic {}Rsp {}({}Model model) {\n", replaceCount++, replaceCount++, 0));
+        sb.append(replaceFormat("\t\t{}Req.Builder request = {}Req.newBuilder();\n", 0, 0));
+        sb.append("\t\tProtoBufUtil.transform(model, request);\n");
+        sb.append("\t\trequest.setCzr(UserHelper.getId());\n");
+        sb.append(replaceFormat("\t\treturn {}ServiceBlockingStub.{}(request.build());\n", replaceCount++, replaceCount++));
+        sb.append("\t}\n");
+        String consumerAppendString = replaceAll(sb,
+                configuration.upperMethodName,
+                configuration.methodName,
+                configuration.functionName,
+                configuration.methodName);
+        log.info("consumerAppendString:\n{}", consumerAppendString);
+        return consumerAppendString;
+    }
+
+    private String getProtoBody(List<ImportDataModel> list) {
+        return getProtoBody(list, configuration.getWhiteRegExp());
+    }
+
+    private String getProtoBody(List<ImportDataModel> list, String whiteRegExp) {
+        StringBuilder result = new StringBuilder();
+        String[] strings = new String[4];
+        for (ImportDataModel importDataModel : list) {
+            StringBuilder sb = new StringBuilder();
+            String fieldName = importDataModel.getName();
+            String fieldDesc = importDataModel.getDesc();
+            String listObjName = importDataModel.getListObjName();
+            if (importDataModel.getType().equals(ImportDataType.COMMON)) {
+                if (!StringUtils.isBlank(whiteRegExp) && fieldName.matches(whiteRegExp)) {
+                    continue;
+                }
+                strings[0] = fieldDesc;
+                strings[1] = fieldName.equals("czr") ? "int32" : "string";
+                strings[2] = fieldName;
+                strings[3] = String.valueOf(fieldIndex++);
+                // 操作人 int32 czr = 1;
+                sb.append("\t// {0}\n").append("\t{1} {2} = {3};\n");
+            }
+            if (importDataModel.getType().equals(ImportDataType.LIST)) {
+                strings[0] = "repeated";
+                strings[1] = listObjName;
+                strings[2] = fieldName;
+                strings[3] = String.valueOf(fieldIndex++);
+                // repeated CollaborgInfoNew2 list1 = 9;
+                sb.append("\t{0} {1} {2} = {3};\n");
+            }
+            result.append(replaceAll(sb, strings));
+        }
+        return result.toString();
     }
 
     private String getModelBody(List<ImportDataModel> list) {
