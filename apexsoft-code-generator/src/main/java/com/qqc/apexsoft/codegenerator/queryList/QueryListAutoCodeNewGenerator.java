@@ -161,7 +161,13 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     @Override
     public void writeMapper() {
-
+        mainName = "mapper";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getMapperNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getMapperAppendString());
     }
 
     @Override
@@ -796,5 +802,48 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         }
         log.info("daoImplAppendString:\n{}", daoImplAppendString);
         return daoImplAppendString;
+    }
+
+    private String getMapperNewString() {
+        int replaceCount = 0;
+        String mapperNewString = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {}.mapper;\n", replaceCount++));
+        sb.append("\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.apache.ibatis.annotations.Mapper;\n");
+        sb.append("import org.apache.ibatis.annotations.Param;\n");
+        sb.append("import org.springframework.stereotype.Component;\n");
+        sb.append("\n");
+        sb.append("import java.util.List;\n");
+        sb.append("import java.util.Map;\n");
+        sb.append("\n");
+        sb.append(getCopyRightString(replaceCount++));
+        sb.append("@Mapper\n");
+        sb.append("@Repository\n");
+        sb.append(replaceFormat("public interface {}Mapper {\n", replaceCount));
+        sb.append("}\n");
+        mapperNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                getPackageName("proto"),
+                getTime(),
+                configuration.upperFunctionName);
+        log.info("mapperNewString:\n{}", mapperNewString);
+        return mapperNewString;
+    }
+
+    private String getMapperAppendString() {
+        int replaceCount = 0;
+        String mapperAppendString = null;
+        StringBuilder sb = new StringBuilder();
+        if (pageEnabled() || isReturnResult()) {
+            sb.append(replaceFormat("\tList<{}Record.Builder> {}(Map<String, Object> ins);\n", replaceCount++, replaceCount));
+            mapperAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+        } else {
+            sb.append(replaceFormat("\tvoid {}(Map<String, Object> ins);\n", replaceCount));
+            mapperAppendString = replaceAll(sb, configuration.methodName);
+        }
+        log.info("mapperAppendString:\n{}", mapperAppendString);
+        return mapperAppendString;
     }
 }

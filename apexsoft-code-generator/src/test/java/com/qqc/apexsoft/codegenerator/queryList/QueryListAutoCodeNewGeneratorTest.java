@@ -60,7 +60,8 @@ public class QueryListAutoCodeNewGeneratorTest {
     }
 
     @Test
-    public void test() {
-        System.out.println(queryListAutoCodeNewGenerator.getPath("daoImpl"));
+    public void writeMapper() {
+        queryListAutoCodeNewGenerator.writeMapper();
     }
+
 }
