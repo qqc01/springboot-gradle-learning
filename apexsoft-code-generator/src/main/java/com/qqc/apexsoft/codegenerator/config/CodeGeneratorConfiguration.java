@@ -143,9 +143,12 @@ public class CodeGeneratorConfiguration implements InitializingBean {
 
     public String upperMethodName;
 
+    public String upperServiceName;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         this.upperFunctionName = upper(functionName);
         this.upperMethodName = upper(methodName);
+        this.upperServiceName = upper(serviceName);
     }
 }

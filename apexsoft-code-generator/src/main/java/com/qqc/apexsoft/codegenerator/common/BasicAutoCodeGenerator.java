@@ -370,9 +370,13 @@ public class BasicAutoCodeGenerator {
                 var2 = configuration.upperFunctionName + "Mapper";
                 var3 = ".xml";
                 break;
-            case "test":
+            case "clientTest":
                 var0 = configuration.serverTestSrcPath;
-                var2 = configuration.upperFunctionName + "Test";
+                var2 = configuration.upperFunctionName + "ClientTest";
+                break;
+            case "serverTest":
+                var0 = configuration.serverTestSrcPath;
+                var2 = configuration.upperFunctionName + "serverTest";
                 break;
             case "testData":
                 var0 = configuration.serverTestOutSrcPath;
@@ -400,6 +404,9 @@ public class BasicAutoCodeGenerator {
         }
         if (mainName.equals("daoImpl")) {
             packageName = "dao.impl";
+        }
+        if (mainName.equals("clientTest") || mainName.equals("serverTest")) {
+            return configuration.defaultPackageNamePrefix;
         }
         return configuration.defaultPackageNamePrefix.concat(".").concat(packageName);
     }

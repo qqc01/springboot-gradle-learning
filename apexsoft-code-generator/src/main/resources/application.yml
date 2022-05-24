@@ -25,3 +25,5 @@ codeGenerator:
     protoPackageName: ip.basic.activity
     protoName: activity1
     rpcRegExp: .*Service\s+.*
+    # 服务名
+    serviceName: activity

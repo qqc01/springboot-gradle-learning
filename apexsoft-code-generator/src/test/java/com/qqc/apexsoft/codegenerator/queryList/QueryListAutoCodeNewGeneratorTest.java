@@ -69,4 +69,9 @@ public class QueryListAutoCodeNewGeneratorTest {
         queryListAutoCodeNewGenerator.writeMapperXml();
     }
 
+    @Test
+    public void writeClientTest() {
+        queryListAutoCodeNewGenerator.writeClientTest();
+    }
+
 }

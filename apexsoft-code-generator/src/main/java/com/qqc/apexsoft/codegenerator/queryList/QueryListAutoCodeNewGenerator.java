@@ -196,7 +196,13 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     @Override
     public void writeClientTest() {
-
+        mainName = "clientTest";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getClientTestNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getClientTestAppendString());
     }
 
     @Override
@@ -840,7 +846,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append(getCopyRightString(replaceCount++));
         sb.append("@Mapper\n");
         sb.append("@Repository\n");
-        sb.append(replaceFormat("public interface {}Mapper {\n", replaceCount));
+        sb.append(replaceFormat("public interface {}Mapper {\n", replaceCount++));
         sb.append("}\n");
         mapperNewString = replaceAll(sb,
                 configuration.defaultPackageNamePrefix,
@@ -972,5 +978,101 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             sb.append(replaceAll("\t\t<parameter property=\"{0}\" mode=\"IN\"/>\n", importDataModel.getProcedureParam()));
         }
         return sb.toString();
+    }
+
+    private String getClientTestNewString() {
+        int replaceCount = 0;
+        String clientTestNewString = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {};\n", replaceCount++));
+        sb.append("import com.alibaba.fastjson.JSON;\n");
+        sb.append("import com.alibaba.fastjson.JSONObject;\n");
+        sb.append("import com.alibaba.fastjson.serializer.SerializerFeature;\n");
+        sb.append("import com.apex.ams.annotation.AmsBlockingStub;\n");
+        sb.append(replaceFormat("import com.apexsoft.crm.{}ServerApplication;\n", replaceCount++));
+        sb.append("import com.apexsoft.utils.FileUtils;\n");
+        sb.append("import com.apexsoft.utils.ProtoBufUtil;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import org.hamcrest.Matchers;\n");
+        sb.append("import org.junit.Assert;\n");
+        sb.append("import org.junit.Before;\n");
+        sb.append("import org.junit.Test;\n");
+        sb.append("import org.junit.runner.RunWith;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
+        sb.append("import org.springframework.boot.test.context.SpringBootTest;\n");
+        sb.append("import org.springframework.http.HttpEntity;\n");
+        sb.append("import org.springframework.http.HttpHeaders;\n");
+        sb.append("import org.springframework.http.MediaType;\n");
+        sb.append("import org.springframework.http.ResponseEntity;\n");
+        sb.append("import org.springframework.test.context.junit4.SpringRunner;\n");
+        sb.append("import org.springframework.web.client.RestTemplate;\n");
+        sb.append("\n");
+        sb.append("import java.util.Arrays;\n");
+        sb.append("import java.util.HashMap;\n");
+        sb.append("import java.util.List;\n");
+        sb.append("import java.util.Map;\n");
+        sb.append("\n");
+        sb.append("@RunWith(SpringRunner.class)\n");
+        sb.append(replaceFormat("@SpringBootTest(classes = {}ServerApplication.class)\n", 1));
+        sb.append(replaceFormat("public class {}ClientTest {\n", replaceCount++));
+        sb.append("\tpublic static final String LOCALHOST = \"http://localhost:8000/org\";\n");
+        sb.append("\tpublic static final String REMOTE = \"http://192.168.24.252:8001/org\";\n");
+        sb.append("\tpublic static final String ACTIVE = LOCALHOST;\n");
+        sb.append("\n");
+        sb.append("\t@Autowired\n");
+        sb.append("\tprivate RestTemplate restTemplate;\n");
+        sb.append("\n");
+        sb.append("\t@AmsBlockingStub\n");
+        sb.append(replaceFormat("\tprivate {}ServiceGrpc.{}ServiceBlockingStub {}ServiceBlockingStub;\n", 3, 3, replaceCount++));
+        sb.append("\n");
+        sb.append("\tprivate List<String> cookies = Arrays.asList(\"LBSESSION=YWUzNDdkYzEtY2U5MS00ODgxLWE2YzYtYjFkNzdjMzdiM2Qz; Path=/; HttpOnly\");\n");
+        sb.append("\n");
+        sb.append("\t@Test\n");
+        sb.append("\tpublic void testContextLoads() {\n");
+        sb.append("\t\tSystem.out.println(restTemplate);\n");
+        sb.append("\t}\n");
+        sb.append("\n");
+        sb.append("\tprivate void assert0(ResponseEntity<JSONObject> entity) {\n");
+        sb.append("\t\tAssert.assertNotNull(entity);\n");
+        sb.append("\t\tAssert.assertNotNull(entity.getBody());\n");
+        sb.append("\t\tAssert.assertNotNull(entity.getBody().get(\"code\"));\n");
+        sb.append("\t\tSystem.out.println(JSON.toJSONString(entity.getBody(), SerializerFeature.PrettyFormat));\n");
+        sb.append("\t\tAssert.assertThat(Integer.parseInt(String.valueOf(entity.getBody().get(\"code\"))), Matchers.greaterThanOrEqualTo(0));\n");
+        sb.append("\t}\n");
+        sb.append("\n");
+        sb.append("}\n");
+        clientTestNewString = replaceAll(sb,
+                configuration.defaultPackageNamePrefix,
+                configuration.upperServiceName,
+                getPackageName("proto"),
+                configuration.upperFunctionName,
+                configuration.functionName);
+        log.info("clientTestNewString:\n{}", clientTestNewString);
+        return clientTestNewString;
+    }
+
+    private String getClientTestAppendString() {
+        int replaceCount = 0;
+        String clientTestAppendString = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append("\t@Test\n");
+        sb.append(replaceFormat("\tpublic void {}() {\n", replaceCount++));
+        sb.append(replaceFormat("\t\tString var = \"{}\";\n", 0));
+        sb.append("\t\tHttpHeaders headers = new HttpHeaders();\n");
+        sb.append("\t\theaders.put(HttpHeaders.COOKIE, cookies);\n");
+        sb.append("\t\theaders.setContentType(MediaType.APPLICATION_JSON);\n");
+        sb.append(replaceFormat("\t\tHttpEntity<String> httpEntity = new HttpEntity<>(FileUtils.readString({}ClientTest.class, var), headers);\n", replaceCount++));
+        sb.append(replaceFormat("\t\tResponseEntity<JSONObject> entity = restTemplate.postForEntity(ACTIVE + \"/{}/{}/v1/{}\", httpEntity, JSONObject.class);\n", replaceCount++, replaceCount++, replaceCount++));
+        sb.append("\t\tassert0(entity);\n");
+        sb.append("\t}\n");
+        clientTestAppendString = replaceAll(sb,
+                configuration.methodName,
+                configuration.upperFunctionName,
+                configuration.serviceName,
+                configuration.functionName,
+                configuration.methodName);
+        log.info("clientTestAppendString:\n{}", clientTestAppendString);
+        return clientTestAppendString;
     }
 }
