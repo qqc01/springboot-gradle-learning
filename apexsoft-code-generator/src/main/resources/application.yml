@@ -1,6 +1,6 @@
 codeGenerator:
     # 业务配置
-    functionName: otherService
+    functionName: otherService1
     functionDesc: 机构C5-服务模块基础微服务
     methodName: queryCusMaintainList1
     methodDesc: 客户维护查询
@@ -18,7 +18,7 @@ codeGenerator:
     serverTestSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\test\java
     serverTestOutSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\out\test\classes
     # 默认设置
-    defaultPackageNamePrefix: com.apexsoft.crm.otheractivity
+    defaultPackageNamePrefix: com.apexsoft.crm.otheractivity1
     whiteRegExp: czr
     # 其他设置
     # proto

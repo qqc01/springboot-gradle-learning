@@ -7,6 +7,7 @@ import com.qqc.apexsoft.codegenerator.model.ImportDataType;
 import com.qqc.apexsoft.codegenerator.utils.AutoCodeGeneratorException;
 import com.qqc.apexsoft.codegenerator.utils.AutoCodeGeneratorHelper;
 import com.qqc.apexsoft.codegenerator.utils.JSONUtil;
+import javafx.scene.input.DataFormat;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.collections.CollectionUtils;
@@ -17,6 +18,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +53,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
      */
     public void writeProto() {
         // 1 创建文件
-        if (getIsCreateFile()) {
+        if (isCreateFile()) {
             write0(getPath("proto"), getProtoNewString());
         }
         // 2 写入文件
@@ -77,21 +81,79 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
      */
     @Override
     public void writeController() {
-        String appendControllerString = getAppendControllerString();
+        mainName = "controller";
+        // 1 创建文件
+        if (isCreateFile()) {
+            write0(getPath(mainName), getControllerNewString());
+        }
+        // 2 写入文件
+        write0(getPath(mainName), getControllerAppendString());
     }
 
-    private String getAppendControllerString() {
+    private String getControllerNewString() {
+        int replaceCount = 0;
+        StringBuilder sb = new StringBuilder();
+        sb.append(replaceFormat("package {};\n", replaceCount++));
+        sb.append("\n");
+        sb.append("import com.apexsoft.crm.ams.annotation.ApiPost;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append(replaceFormat("import {}.{}Consumer;\n", replaceCount++, replaceCount++));
+        sb.append("import io.swagger.annotations.Api;\n");
+        sb.append("import io.swagger.annotations.ApiOperation;\n");
+        sb.append("import io.swagger.annotations.ApiParam;\n");
+        sb.append(replaceFormat("import {}.*;\n", replaceCount++));
+        sb.append("import org.slf4j.Logger;\n");
+        sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
+        sb.append("import org.springframework.web.bind.annotation.PostMapping;\n");
+        sb.append("import org.springframework.web.bind.annotation.RequestBody;\n");
+        sb.append("import org.springframework.web.bind.annotation.RequestMapping;\n");
+        sb.append("import org.springframework.web.bind.annotation.RestController;\n");
+        sb.append("\n");
+        sb.append("/**\n");
+        sb.append(" * @author qqc\n");
+        sb.append(replaceFormat(" * @create {}\n", replaceCount++));
+        sb.append(" * @description\n");
+        sb.append(" */\n");
+        sb.append("@RestController\n");
+        sb.append(replaceFormat("@RequestMapping(value = \"/{}\")\n", replaceCount++));
+        sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
+        sb.append(replaceFormat("public class {}Controller {\n", 3));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
+        sb.append("\n");
+        sb.append("\t@Autowired\n");
+        sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n",3, 6));
+        sb.append("}\n");
+        String controllerNewString = replaceAll(sb,
+                getPackageName(mainName),
+                getPackageName("model"),
+                getPackageName("consumer"),
+                configuration.upperFunctionName,
+                getPackageName("proto"),
+                getTime(),
+                configuration.functionName,
+                configuration.functionDesc);
+        log.info("controllerNewString:\n{}", controllerNewString);
+        return controllerNewString;
+    }
+
+    private String getControllerAppendString() {
+        int replaceCount = 0;
         StringBuilder sb = new StringBuilder();
         if (isGet()) {
-            sb.append("\t@RequestMapping(value = \"/v1/{0}\", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)\n");
+            sb.append(replaceFormat("\t@RequestMapping(value = \"/v1/{}\", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)\n", replaceCount++));
         } else {
-            sb.append("\t@ApiPost( \"/v1/{0}\")\n");
+            sb.append(replaceFormat("\t@ApiPost( \"/v1/{}\")\n", replaceCount++));
         }
-        sb.append("\t@ApiOperation(value = \"{1}\")\n");
-        sb.append("\tpublic {2}Rsp {0}(@ApiParam(value = \"入参JSON\") @RequestBody {2}Model model) {\n");
-        sb.append("\t\treturn {3}.cusMaintainLocking(model);\n");
+        sb.append(replaceFormat("\t@ApiOperation(value = \"{}\")\n", replaceCount++));
+        sb.append(replaceFormat("\tpublic {}Rsp {}(@ApiParam(value = \"入参JSON\") @RequestBody {}Model model) {\n", replaceCount++, 0, 2));
+        sb.append(replaceFormat("\t\treturn {}Consumer.cusMaintainLocking(model);\n", replaceCount++));
         sb.append("\t}\n");
-        String controllerAppendString = replaceAll(sb, configuration.methodName, configuration.methodDesc, configuration.upperMethodName, getConsumerName());
+        String controllerAppendString = replaceAll(sb,
+                configuration.methodName,
+                configuration.methodDesc,
+                configuration.upperMethodName,
+                configuration.functionName);
         log.info("controllerAppendString:\n{}", controllerAppendString);
         return controllerAppendString;
     }
@@ -400,6 +462,11 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     public void setGet(boolean get) {
         isGet = get;
+    }
+
+    public String getTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        return sdf.format(new Date());
     }
 
     @Override

@@ -41,7 +41,13 @@ public class QueryListAutoCodeNewGeneratorTest {
 
     @Test
     public void test() {
-        System.out.println(queryListAutoCodeNewGenerator.getConfiguration().upperMethodName);
-        System.out.println(queryListAutoCodeNewGenerator.getConfiguration().protoSrcPath);
+//        System.out.println(queryListAutoCodeNewGenerator.getConfiguration().upperMethodName);
+//        System.out.println(queryListAutoCodeNewGenerator.getConfiguration().protoSrcPath);
+
+        String str = "abc{},{}";
+        System.out.println(str.replace("{}", "*"));
+
+
     }
+
 }

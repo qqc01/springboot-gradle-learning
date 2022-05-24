@@ -115,6 +115,22 @@ public class BasicAutoCodeGenerator {
         return result;
     }
 
+    public String replaceFormat(String src, Integer... replaceCounts) {
+        StringBuilder sb = new StringBuilder();
+        char[] chars = src.toCharArray();
+        List<Integer> replaceCountList = new ArrayList<>();
+        Collections.addAll(replaceCountList, replaceCounts);
+        Iterator<Integer> iterator = replaceCountList.iterator();
+        for (int i = 0; i < chars.length; i++) {
+            if (chars[i] == '{' && chars[i + 1] == '}') {
+                sb.append(chars[i]).append(iterator.next());
+            } else {
+                sb.append(chars[i]);
+            }
+        }
+        return sb.toString();
+    }
+
     protected List<ImportDataModel> getDataList(int sheetNo) {
         List<ImportDataModel> dataList = new ArrayList<>();
         for (Map<Integer, String> map : readExcel(sheetNo, getBasicClass())) {
@@ -277,7 +293,7 @@ public class BasicAutoCodeGenerator {
     }
 
     public void fileCheck() {
-        if (!getIsCreateFile()) {
+        if (!isCreateFile()) {
             assertAndLog("proto");
             assertAndLog("controller");
             assertAndLog("consumer");
@@ -306,7 +322,7 @@ public class BasicAutoCodeGenerator {
         Assert.notNull(configuration.serverTestSrcPath);
         Assert.notNull(configuration.serverTestOutSrcPath);
         Assert.notNull(configuration.defaultPackageNamePrefix);
-        Assert.notNull(configuration.functionName);
+        Assert.notNull(configuration.upperFunctionName);
         String var0 = null;//根路径
         String var1 = stringHelper.replace(getPackageName(mainName)).getPath();//包路径
         String var2 = null;//文件名
@@ -323,36 +339,36 @@ public class BasicAutoCodeGenerator {
                 break;
             case "controller":
                 var0 = configuration.clientSrcPath;
-                var2 = configuration.functionName + "Controller";
+                var2 = configuration.upperFunctionName + "Controller";
                 break;
             case "consumer":
                 var0 = configuration.clientSrcPath;
-                var2 = configuration.functionName + "Consumer";
+                var2 = configuration.upperFunctionName + "Consumer";
                 break;
             case "provider":
                 var0 = configuration.serverSrcPath;
-                var2 = configuration.functionName + "Provider";
+                var2 = configuration.upperFunctionName + "Provider";
                 break;
             case "dao":
                 var0 = configuration.serverSrcPath;
-                var2 = configuration.functionName + "Dao";
+                var2 = configuration.upperFunctionName + "Dao";
                 break;
             case "daoImpl":
                 var0 = configuration.serverSrcPath;
-                var2 = configuration.functionName + "DaoImpl";
+                var2 = configuration.upperFunctionName + "DaoImpl";
                 break;
             case "mapper":
                 var0 = configuration.serverSrcPath;
-                var2 = configuration.functionName + "Mapper";
+                var2 = configuration.upperFunctionName + "Mapper";
                 break;
             case "mapperXml":
                 var0 = configuration.mapperXmlSrcPath;
-                var2 = configuration.functionName + "Mapper";
+                var2 = configuration.upperFunctionName + "Mapper";
                 var3 = ".xml";
                 break;
             case "test":
                 var0 = configuration.serverTestSrcPath;
-                var2 = configuration.functionName + "Test";
+                var2 = configuration.upperFunctionName + "Test";
                 break;
             case "testData":
                 var0 = configuration.serverTestOutSrcPath;
@@ -384,7 +400,7 @@ public class BasicAutoCodeGenerator {
         return configuration.defaultPackageNamePrefix.concat(".").concat(packageName);
     }
 
-    public boolean getIsCreateFile() {
+    public boolean isCreateFile() {
         return configuration.isCreateFile;
     }
 
@@ -397,7 +413,7 @@ public class BasicAutoCodeGenerator {
     }
 
     protected String getConsumerName() {
-        return configuration.functionName + "Consumer";
+        return configuration.upperFunctionName + "Consumer";
     }
 
     protected String getServiceName() {
@@ -419,6 +435,6 @@ public class BasicAutoCodeGenerator {
     }
 
     protected void setModelDesc(String desc) {
-        this.modelDesc =desc;
+        this.modelDesc = desc;
     }
 }
