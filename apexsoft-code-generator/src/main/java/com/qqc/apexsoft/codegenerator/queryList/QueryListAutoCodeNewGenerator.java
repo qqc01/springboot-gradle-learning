@@ -704,6 +704,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             } else {
                 sb.append("\t\tMap<String, Object> map = ProtoBufUtil.transformMap2(ins);\n");
             }
+            sb.append("\t\tProtoBufUtil.transform(map, rsp);\n");
             // 遍历添加结果集
             sb.append("\t\tresultList.forEach(builder -> {\n");
             sb.append("\t\t\tif (builder != null) {\n");
@@ -1038,6 +1039,21 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("\t\tSystem.out.println(restTemplate);\n");
         sb.append("\t}\n");
         sb.append("\n");
+        sb.append("\t@Before\n");
+        sb.append("\t@Test\n");
+        sb.append("\tpublic void auth() {\n");
+        sb.append("\t\tHttpHeaders headers = new HttpHeaders();\n");
+        sb.append("\t\theaders.setContentType(MediaType.APPLICATION_JSON);\n");
+        sb.append("\t\tString json = \"{\\n\" +\n");
+        sb.append("\t\t\t\t\"  \\\"clientId\\\": \\\"c5::pc\\\",\\n\" +\n");
+        sb.append("\t\t\t\t\"  \\\"signature\\\": \\\"aElUNn15fKgHT2MY/KQL+2PMhAaKyUVCFONZud2gtW53r5zhYdDwh5toXzBZUR4zZR/Q/XPGtksax+hQ6HBT4r9wLh+RUEyjEXn93zMQnGBcRTR46JoiFhHzpScdCZLX\\\",\\n\" +\n");
+        sb.append("\t\t\t\t\"  \\\"ext\\\": \\\"\\\"\\n\" +\n");
+        sb.append("\t\t\t\t\"}\";\n");
+        sb.append("\t\tHttpEntity<String> httpEntity = new HttpEntity<>(json, headers);\n");
+        sb.append("\t\tResponseEntity<JSONObject> entity = restTemplate.postForEntity(ACTIVE + \"/auth\", httpEntity, JSONObject.class);\n");
+        sb.append("\t\tthis.cookies = entity.getHeaders().get(\"Set-Cookie\");\n");
+        sb.append("\t}\n");
+        sb.append("\n");
         sb.append("\tprivate void assert0(ResponseEntity<JSONObject> entity) {\n");
         sb.append("\t\tAssert.assertNotNull(entity);\n");
         sb.append("\t\tAssert.assertNotNull(entity.getBody());\n");
@@ -1063,18 +1079,17 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         StringBuilder sb = new StringBuilder();
         sb.append("\t@Test\n");
         sb.append(replaceFormat("\tpublic void {}() {\n", replaceCount++));
-        sb.append(replaceFormat("\t\tString var = \"{}\";\n", replaceCount++));
         sb.append("\t\tHttpHeaders headers = new HttpHeaders();\n");
         sb.append("\t\theaders.put(HttpHeaders.COOKIE, cookies);\n");
         sb.append("\t\theaders.setContentType(MediaType.APPLICATION_JSON);\n");
-        sb.append(replaceFormat("\t\tHttpEntity<String> httpEntity = new HttpEntity<>(FileUtils.readString({}ClientTest.class, var), headers);\n", replaceCount++));
+        sb.append(replaceFormat("\t\tHttpEntity<String> httpEntity = new HttpEntity<>(FileUtils.readString({}ClientTest.class, \"{}\"), headers);\n", replaceCount++, replaceCount++));
         sb.append(replaceFormat("\t\tResponseEntity<JSONObject> entity = restTemplate.postForEntity(ACTIVE + \"/{}/{}/v1/{}\", httpEntity, JSONObject.class);\n", replaceCount++, replaceCount++, replaceCount++));
         sb.append("\t\tassert0(entity);\n");
         sb.append("\t}\n");
         clientTestAppendString = replaceAll(sb,
                 configuration.methodName,
-                configuration.interfaceIndex + "_" + configuration.methodName,
                 configuration.upperFunctionName,
+                configuration.interfaceIndex + "_" + configuration.methodName,
                 configuration.serviceName,
                 configuration.functionName,
                 configuration.methodName);
@@ -1162,6 +1177,8 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     private String getTestDataNewString() {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
+        // 默认的czr
+        sb.append("\t\"czr\": \"0\"").append(",").append("\n");
         sb.append(getTestDataBody(inList));
 
         // 删除最好一个逗号
@@ -1176,7 +1193,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     private String getTestDataBody(List<ImportDataModel> inList) {
         StringBuilder sb = new StringBuilder();
         for (ImportDataModel importDataModel : inList) {
-            if (importDataModel.isList()) {
+            if (importDataModel.isList() || importDataModel.getName().matches(configuration.getWhiteRegExp())) {
                 continue;
             }
             sb.append(replaceAll("\t\"{0}\": \"{1}\",\n", importDataModel.getName(), ""));

@@ -298,15 +298,20 @@ public class BasicAutoCodeGenerator {
 
     public void fileCheck() {
         if (!isCreateFile()) {
-            assertAndLog("proto");
-            assertAndLog("controller");
-            assertAndLog("consumer");
-            assertAndLog("provider");
-            assertAndLog("dao");
-            assertAndLog("daoImpl");
-            assertAndLog("mapper");
-            assertAndLog("mapperXml");
-            assertAndLog("test");
+            try {
+                assertAndLog("proto");
+                assertAndLog("controller");
+                assertAndLog("consumer");
+                assertAndLog("provider");
+                assertAndLog("dao");
+                assertAndLog("daoImpl");
+                assertAndLog("mapper");
+                assertAndLog("mapperXml");
+                assertAndLog("clientTest");
+                assertAndLog("serverTest");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("文件路径校验失败！！！");
+            }
         }
         log.info("文件路径检查通过");
     }
