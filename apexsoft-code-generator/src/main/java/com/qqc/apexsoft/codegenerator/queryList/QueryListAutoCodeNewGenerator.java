@@ -43,6 +43,11 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         setBasicClass(QueryListAutoCodeNewGenerator.class);
     }
 
+    @Override
+    public void autoCodeGenerate() {
+        AutoCodeGenerator.super.autoCodeGenerate();
+    }
+
     /**
      * 编写proto
      * <p>
@@ -588,6 +593,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("import org.apache.commons.lang3.StringUtils;\n");
         sb.append("import org.slf4j.Logger;\n");
         sb.append("import org.slf4j.LoggerFactory;\n");
+        sb.append("import org.springframework.stereotype.Service;\n");
         sb.append("\n");
         sb.append("import java.util.List;\n");
         sb.append("\n");
@@ -654,7 +660,9 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("import org.slf4j.LoggerFactory;\n");
         sb.append("import org.springframework.beans.factory.annotation.Autowired;\n");
         sb.append("\n");
+        sb.append("import java.util.HashMap;\n");
         sb.append("import java.util.List;\n");
+        sb.append("import java.util.Map;\n");
         sb.append("\n");
         sb.append(getCopyRightString(replaceCount++));
         sb.append("@AmsService\n");
@@ -847,6 +855,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("import org.apache.ibatis.annotations.Mapper;\n");
         sb.append("import org.apache.ibatis.annotations.Param;\n");
         sb.append("import org.springframework.stereotype.Component;\n");
+        sb.append("import org.springframework.stereotype.Repository;\n");
         sb.append("\n");
         sb.append("import java.util.List;\n");
         sb.append("import java.util.Map;\n");
