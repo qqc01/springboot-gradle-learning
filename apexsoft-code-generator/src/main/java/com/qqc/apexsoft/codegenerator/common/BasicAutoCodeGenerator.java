@@ -189,6 +189,36 @@ public class BasicAutoCodeGenerator {
         }
     }
 
+    private void write4(String context) {
+        BufferedWriter bw = null;
+        String line = null;
+        try {
+            bw = new BufferedWriter(new FileWriter(path));
+            if (originData != null && originData.size() > 0) {
+                Iterator<String> iterator = originData.iterator();
+                line = iterator.next();
+                while (iterator.hasNext()) {
+                    bw.write(line);
+                    bw.write("\n");
+                    line = iterator.next();
+                }
+//                bw.write("\n");
+            }
+
+            // 开始写新代码
+            StringBuilder sb = new StringBuilder();
+//            if (configuration.getInterfaceIndex() != 1) {
+//                sb.append("\n");
+//            }
+            sb.append(context);
+            sb.append(line == null ? "" : line);
+            bw.write(sb.toString());
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 写入除proto追加内容之外的所有内容
      * 包括新增内容和追加内容
@@ -201,6 +231,19 @@ public class BasicAutoCodeGenerator {
         log.info("setPath:" + path);
         setOriginData();
         write(context);
+    }
+
+    /**
+     * 写入Model和testData等一直都是新增的内容
+     *
+     * @param path    路径
+     * @param context 内容
+     */
+    protected void write3(String path, String context) {
+        setPath(path);
+        log.info("setPath:" + path);
+        setOriginData();
+        write4(context);
     }
 
     protected void write1(String context1, String context2) {

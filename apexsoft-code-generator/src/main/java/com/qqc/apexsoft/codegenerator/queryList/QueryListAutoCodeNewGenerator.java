@@ -224,7 +224,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     @Override
     public void writeTestData() {
         mainName = "testData";
-        write0(getPath(mainName), getTestDataNewString());
+        write3(getPath(mainName), getTestDataNewString());
     }
 
     /**
@@ -400,7 +400,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         if (CollectionUtils.isEmpty(list)) {
             throw new AutoCodeGeneratorException("list数据为空！！！");
         }
-        write0(path, getModelNewString(list));
+        write3(path, getModelNewString(list));
         List<ImportDataModel> childList = list.stream().filter(ImportDataModel::isList).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(childList)) {
             for (ImportDataModel importDataModel : childList) {
@@ -515,6 +515,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append("import com.apexsoft.crm.ams.annotation.ApiPost;\n");
         sb.append(replaceFormat("import {}.*;\n", replaceCount++));
         sb.append(replaceFormat("import {}.{}Consumer;\n", replaceCount++, replaceCount++));
+        sb.append("import com.apexsoft.crm.constant.CustomerRequestCommonPathConstant;\n");
         sb.append("import io.swagger.annotations.Api;\n");
         sb.append("import io.swagger.annotations.ApiOperation;\n");
         sb.append("import io.swagger.annotations.ApiParam;\n");
@@ -533,7 +534,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append(" * @description\n");
         sb.append(" */\n");
         sb.append("@RestController\n");
-        sb.append(replaceFormat("@RequestMapping(value = \"/{}\")\n", replaceCount++));
+        sb.append(replaceFormat("@RequestMapping(value = CustomerRequestCommonPathConstant.REQUEST_PROJECT_PATH + \"/{}\")\n", replaceCount++));
         sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
         sb.append(replaceFormat("public class {}Controller {\n", 3));
         sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
@@ -912,7 +913,10 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         // 默认的code和note
         sb.append("\t\t<parameter javaType=\"java.lang.Integer\" property=\"O_CODE\" mode=\"OUT\" jdbcType=\"INTEGER\"/>\n");
         sb.append("\t\t<parameter javaType=\"java.lang.String\" property=\"O_NOTE\" mode=\"OUT\" jdbcType=\"VARCHAR\"/>\n");
-        if (pageEnabled() || isReturnResult()) {
+        if (pageEnabled()) {
+            sb.append("\t\t<parameter javaType=\"java.lang.Integer\" property=\"O_HASRECORDSET\" mode=\"OUT\" jdbcType=\"INTEGER\"/>\n");
+        }
+        if (isReturnResult()) {
             sb.append(replaceFormat("\t\t<parameter javaType=\"ResultSet\" property=\"O_RESULT\" mode=\"OUT\" jdbcType=\"CURSOR\" resultMap=\"{}Result\"/>\n", 0));
         }
         if (pageEnabled()) {

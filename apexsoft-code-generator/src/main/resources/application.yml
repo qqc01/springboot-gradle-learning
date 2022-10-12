@@ -1,29 +1,35 @@
 codeGenerator:
     # 业务配置
-    functionName: otherService
-    functionDesc: 机构C5-服务模块基础微服务
-    methodName: queryCusMaintainList1
-    methodDesc: 客户维护查询
-    procedureName: PCX_JC_KHWHCX
-    interfaceIndex: 1
+    # 新包需要修改
+    functionName: basicInfo
+    # 新包需要修改
+    functionDesc: 机构C5-客户模块基础微服务
+    methodName: shareholdersInfo
+    methodDesc: 股东信息
+    procedureName: PCX_GMKHST_GDXX
+    # 新包需要修改
+    interfaceIndex: 2
     pageEnabled: true
     isReturnResult: true
     testEnabled: true
-    isCreateFile: true
+    # 新包需要修改
+    isCreateFile: false
     # 根路径
-    protoSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-protocol\src\main\proto
-    clientSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-client-org-activity\src\main\java
-    serverSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\java
-    mapperXmlSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\resources\mybatis\oracle\jgcrm
-    serverTestSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\test\java
-    serverTestDataSrcPath: D:\IdeaProjects\apexsoft\swhy\work01\jgcrm_ams\ams-server-org-activity\src\main\resources
+    protoSrcPath: D:\files\IdeaProjects\work\apexsoft\htzq\jgcrm-ams\ams-protocol\src\main\proto
+    clientSrcPath: D:\files\IdeaProjects\work\apexsoft\htzq\jgcrm-ams\ams-client-org-customer\src\main\java
+    serverSrcPath: D:\files\IdeaProjects\work\apexsoft\htzq\jgcrm-ams\ams-server-org-customer\src\main\java
+    mapperXmlSrcPath: D:\files\IdeaProjects\work\apexsoft\htzq\jgcrm-ams\ams-server-org-customer\src\main\resources\mybatis\oracle\jgcrm
+    serverTestSrcPath: D:\files\IdeaProjects\work\apexsoft\htzq\jgcrm-ams\ams-server-org-customer\src\test\java
+    serverTestDataSrcPath: D:\files\IdeaProjects\work\apexsoft\htzq\jgcrm-ams\ams-server-org-customer\src\main\resources
     # 默认设置
-    defaultPackageNamePrefix: com.apexsoft.crm.otheractivity
+    # 新包需要修改
+    defaultPackageNamePrefix: com.apexsoft.crm.basicInfo
     whiteRegExp: czr
     # 其他设置
     # proto
-    protoPackageName: ip.basic.activity
-    protoName: activity
+    protoPackageName: ip.base.customer
+    # 新包需要修改
+    protoName: basicInfo
     rpcRegExp: .*Service\s+.*
     # 服务名
-    serviceName: activity
+    serviceName: customer
