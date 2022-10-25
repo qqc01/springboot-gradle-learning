@@ -432,7 +432,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append(getModelBody(importDataModelList));
         // getter and setter
         // 默认操作人
-        sb.append("\n");
+//        sb.append("\n");
         sb.append(getModelGetterAndSetter(importDataModelList));
         // 去除最后一个空行
         deleteEnd(sb);
@@ -962,7 +962,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         }
         // 分页
         if (pageEnabled()) {
-            sb.append(",?,?,?,?,?");
+            sb.append(",?,?,?,?,?,?");
         }
         // czr
         sb.append(",?");
