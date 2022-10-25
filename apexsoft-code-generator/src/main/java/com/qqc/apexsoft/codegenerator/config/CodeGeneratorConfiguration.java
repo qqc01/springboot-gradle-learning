@@ -38,6 +38,12 @@ public class CodeGeneratorConfiguration implements InitializingBean {
     public String procedureName;
 
     /**
+     * 表名
+     */
+    @Value("${codeGenerator.tableName}")
+    public String tableName;
+
+    /**
      * 是否启用分页，默认为false，pageEnabled包含isReturnResult
      */
     @Value("${codeGenerator.pageEnabled:false}")
