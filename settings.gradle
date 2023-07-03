@@ -1,3 +1,4 @@
 rootProject.name = 'springboot-gradle-learning'
 include 'apexsoft-code-generator'
+include 'protocol'
 

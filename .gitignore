@@ -1,11 +1,22 @@
-HELP.md
-.gradle
-build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### STS ###
+# Gradle Files
+.gradle/
+build/
+*/build/
+*/.config.cache
+out/
+*/out/
+
+### IntelliJ IDEA ###
+*.iml
+*/*.iml
+.idea/
+*/.idea/
+
+### Eclipse ###
 .apt_generated
 .classpath
 .factorypath
@@ -17,15 +28,6 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -33,5 +35,30 @@ out/
 /nbdist/
 /.nb-gradle/
 
+# Log Files
+*.log
+logs/
+log/
+
 ### VS Code ###
 .vscode/
+
+# OSX Files
+*/.DS_Store
+.DS_Store
+
+# Other Files
+Thumbs.db
+*.bak
+*.tem
+
+# Maven Files
+target/
+
+# gRPC Source Files
+*/generatedSrc/
+
+# gradle wrapper Files
+/gradle/
+/gradlew
+/gradlew.bat
