@@ -1,0 +1,6 @@
+	public rspName methodName(requestModelName requestModelVariableName) {
+		reqName.Builder request = reqName.newBuilder();
+		ProtoBufUtil.transform(requestModelVariableName, request);
+		request.setCzr(UserHelper.getId());
+		return blockingStubVariableName.methodName(request.build());
+	}

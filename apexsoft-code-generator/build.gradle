@@ -18,6 +18,7 @@ dependencies {
     implementation 'com.alibaba:fastjson:2.0.3'
     implementation 'com.alibaba:easyexcel:2.2.6'
     implementation 'org.aspectj:aspectjweaver:1.9.9.1'
+    implementation 'com.google.guava:guava:31.1-jre'
 }
 
 test {

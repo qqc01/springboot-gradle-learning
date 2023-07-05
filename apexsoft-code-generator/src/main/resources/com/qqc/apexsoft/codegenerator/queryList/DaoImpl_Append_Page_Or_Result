@@ -1,0 +1,4 @@
+	@Override
+	public List<recordName.Builder> methodName(Map<String, Object> ins) {
+		return mapperVariableName.methodName(ins);
+	}

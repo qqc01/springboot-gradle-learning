@@ -2,10 +2,12 @@ package com.qqc.apexsoft.codegenerator.queryList;
 
 import com.qqc.apexsoft.codegenerator.common.AutoCodeGenerator;
 import com.qqc.apexsoft.codegenerator.common.BasicAutoCodeGenerator;
+import com.qqc.apexsoft.codegenerator.constants.ItemTypeEnum;
 import com.qqc.apexsoft.codegenerator.model.ImportDataModel;
 import com.qqc.apexsoft.codegenerator.model.ImportDataType;
 import com.qqc.apexsoft.codegenerator.utils.AutoCodeGeneratorException;
 import com.qqc.apexsoft.codegenerator.utils.AutoCodeGeneratorHelper;
+import com.qqc.apexsoft.codegenerator.utils.FileUtils;
 import com.qqc.apexsoft.codegenerator.utils.JSONUtil;
 import javafx.scene.input.DataFormat;
 import lombok.Data;
@@ -22,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -230,6 +233,8 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     @Override
     public void afterPropertiesSet() {
         fileCheck();
+        // 组装模板代码变量Map
+        assemFieldNameMap();
     }
 
     public void config() {
@@ -312,6 +317,9 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     }
 
     private String getConsumerAppendString() {
+        if (configuration.enabledNewVersion) {
+            return transform(ItemTypeEnum.Consumer_Append.getItemName());
+        }
         int replaceCount = 0;
         StringBuilder sb = new StringBuilder();
         sb.append(replaceFormat("\tpublic {}Rsp {}({}Model model) {\n", replaceCount++, replaceCount++, 0));
@@ -329,7 +337,42 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         return consumerAppendString;
     }
 
+    private String transformFromProviderToXml() {
+        StringBuilder sb = new StringBuilder();
+        // 中间插入语句的第一行不需要通过tab来调整格式
+        sb.append("Map<String, Object> ins = new HashMap<>();\n");
+        // 分页
+        if (pageEnabled()) {
+            sb.append("\t\tins.put(\"I_PAGING\", request.getPaging());\n");
+            sb.append("\t\tins.put(\"I_PAGENO\", request.getCurrent());\n");
+            sb.append("\t\tins.put(\"I_PAGELENGTH\", request.getPageSize());\n");
+            sb.append("\t\tins.put(\"I_TOTALROWS\", request.getTotal());\n");
+            sb.append("\t\tins.put(\"I_SORT\", request.getSort());\n");
+        }
+        // 默认必传的 crz
+        sb.append("\t\tins.put(\"I_CZR\", request.getCzr());\n");
+        sb.append(getProviderBody(inList));
+        // 去除最后多余的换行符
+        deleteEnd(sb);
+        return sb.toString();
+    }
+
     private String getProviderAppendString() {
+        if (configuration.enabledNewVersion) {
+            // 构建调用存储过程的map
+            fieldNameMap.put("transformFromProviderToXml", transformFromProviderToXml());
+            // 判断是否分页和是否返回结果集
+            ItemTypeEnum itemTypeEnum = null;
+            if (pageEnabled()) {
+                itemTypeEnum = ItemTypeEnum.Provider_Append_Page;
+            } else if (isReturnResult()) {
+                itemTypeEnum = ItemTypeEnum.Provider_Append_Result;
+            } else {
+                itemTypeEnum = ItemTypeEnum.Provider_Append_No_Result;
+            }
+            return transform(itemTypeEnum.getItemName());
+        }
+
         int replaceCount = 0;
         StringBuilder sb = new StringBuilder();
         sb.append("\t@Override\n");
@@ -392,6 +435,15 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     }
 
     private String getDaoAppendString() {
+        if (configuration.enabledNewVersion) {
+            ItemTypeEnum itemTypeEnum = null;
+            if (pageEnabled() || isReturnResult()) {
+                itemTypeEnum = ItemTypeEnum.Dao_Append_Page_Or_Result;
+            } else {
+                itemTypeEnum = ItemTypeEnum.Dao_Append_No_Result;
+            }
+            return transform(itemTypeEnum.getItemName());
+        }
         int replaceCount = 0;
         StringBuilder sb = new StringBuilder();
         String daoAppendString = null;
@@ -407,6 +459,15 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     }
 
     private String getDaoImplAppendString() {
+        if (configuration.enabledNewVersion) {
+            ItemTypeEnum itemTypeEnum = null;
+            if (pageEnabled() || isReturnResult()) {
+                itemTypeEnum = ItemTypeEnum.DaoImpl_Append_Page_Or_Result;
+            } else {
+                itemTypeEnum = ItemTypeEnum.DaoImpl_Append_No_Result;
+            }
+            return transform(itemTypeEnum.getItemName());
+        }
         int replaceCount = 0;
         String daoImplAppendString = null;
         StringBuilder sb = new StringBuilder();
@@ -432,6 +493,15 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     }
 
     private String getMapperAppendString() {
+        if (configuration.enabledNewVersion) {
+            ItemTypeEnum itemTypeEnum = null;
+            if (pageEnabled() || isReturnResult()) {
+                itemTypeEnum = ItemTypeEnum.Mapper_Append_Page_Or_Result;
+            } else {
+                itemTypeEnum = ItemTypeEnum.Mapper_Append_No_Result;
+            }
+            return transform(itemTypeEnum.getItemName());
+        }
         int replaceCount = 0;
         String mapperAppendString = null;
         StringBuilder sb = new StringBuilder();
@@ -754,5 +824,32 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             sb.append(replaceAll("\t\"{0}\": \"{1}\",\n", importDataModel.getName(), ""));
         }
         return sb.toString();
+    }
+
+    private void assemFieldNameMap() {
+        String methodName = configuration.methodName;//editExistingCustomers
+        fieldNameMap.put("methodName", methodName);
+        fieldNameMap.put("methodDesc", configuration.methodDesc);
+
+        // 需要计算的fieldName
+        String upperMethodName = upper(methodName);//EditExistingCustomers
+        String rspName = upperMethodName + "Rsp";//EditExistingCustomersRsp
+        fieldNameMap.put("rspName", rspName);
+        String reqName = upperMethodName + "Req";//EditExistingCustomersReq
+        fieldNameMap.put("reqName", reqName);
+        String requestModelName = upperMethodName + "Model";//EditExistingCustomersModel
+        fieldNameMap.put("requestModelName", requestModelName);
+        String recordName = upperMethodName + "Record";
+        fieldNameMap.put("recordName", recordName);
+
+        // 配置文件中的fieldName
+        fieldNameMap.put("controllerName", configuration.controllerName);
+        fieldNameMap.put("consumerName", configuration.consumerName);
+        fieldNameMap.put("consumerVariableName", configuration.consumerVariableName);
+        fieldNameMap.put("requestModelVariableName", configuration.requestModelVariableName);
+        fieldNameMap.put("blockingStubVariableName", configuration.blockingStubVariableName);
+        fieldNameMap.put("providerName", configuration.providerName);
+        fieldNameMap.put("daoVariableName", configuration.daoVariableName);
+        fieldNameMap.put("mapperVariableName", configuration.mapperVariableName);
     }
 }

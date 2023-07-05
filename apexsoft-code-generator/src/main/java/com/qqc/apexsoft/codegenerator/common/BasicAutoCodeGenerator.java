@@ -1,17 +1,21 @@
 package com.qqc.apexsoft.codegenerator.common;
 
 import com.alibaba.excel.EasyExcel;
+import com.google.common.collect.Maps;
 import com.qqc.apexsoft.codegenerator.config.CodeGeneratorConfiguration;
+import com.qqc.apexsoft.codegenerator.constants.ItemTypeEnum;
 import com.qqc.apexsoft.codegenerator.model.ImportDataModel;
 import com.qqc.apexsoft.codegenerator.model.ImportDataType;
 import com.qqc.apexsoft.codegenerator.utils.AutoCodeGeneratorException;
 import com.qqc.apexsoft.codegenerator.utils.ExcelListener;
+import com.qqc.apexsoft.codegenerator.utils.FileUtils;
 import com.qqc.apexsoft.codegenerator.utils.StringHelper;
 import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -59,6 +63,12 @@ public class BasicAutoCodeGenerator {
     public String modelDesc;
 
 
+    /**
+     * 模板代码变量Map
+     */
+    protected Map<String, String> fieldNameMap = Maps.newHashMap();
+
+
     protected BasicAutoCodeGenerator() {
         config();
     }
@@ -84,7 +94,7 @@ public class BasicAutoCodeGenerator {
         return list.stream().filter(ImportDataModel::isList).collect(Collectors.toList());
     }
 
-    private Class<?> getBasicClass() {
+    protected Class<?> getBasicClass() {
         return basicClass;
     }
 
@@ -345,17 +355,53 @@ public class BasicAutoCodeGenerator {
         if (!isCreateFile()) {
             try {
                 assertAndLog("proto");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查proto路径！！！");
+            }
+            try {
                 assertAndLog("controller");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查controller路径！！！");
+            }
+            try {
                 assertAndLog("consumer");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查consumer路径！！！");
+            }
+            try {
                 assertAndLog("provider");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查provider路径！！！");
+            }
+            try {
                 assertAndLog("dao");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查dao路径！！！");
+            }
+            try {
                 assertAndLog("daoImpl");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查daoImpl路径！！！");
+            }
+            try {
                 assertAndLog("mapper");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查mapper路径！！！");
+            }
+            try {
                 assertAndLog("mapperXml");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查mapperXml路径！！！");
+            }
+            try {
                 assertAndLog("clientTest");
+            } catch (Exception e) {
+                throw new AutoCodeGeneratorException("请检查clientTest路径！！！");
+            }
+            try {
                 assertAndLog("serverTest");
             } catch (Exception e) {
-                throw new AutoCodeGeneratorException("文件路径校验失败！！！");
+                throw new AutoCodeGeneratorException("请检查serverTest路径！！！");
             }
         }
         log.info("文件路径检查通过");
@@ -363,7 +409,8 @@ public class BasicAutoCodeGenerator {
 
     private void assertAndLog(String name) {
         String path = getPath(name);
-        log.info(name + ":" + path);
+        // log.info(name + ":" + path);
+        log.warn("{}:{}", name, path);
         Assert.isTrue(new File(path).exists());
     }
 
@@ -386,7 +433,7 @@ public class BasicAutoCodeGenerator {
                 var0 = configuration.protoSrcPath;
                 var2 = configuration.protoName;
                 var3 = ".proto";
-                break;
+                return configuration.protoPath;
             case "model":
                 var0 = configuration.clientSrcPath;
                 var2 = StringUtils.isBlank(modelName) ? upper(configuration.methodName) + "Model" : modelName;
@@ -414,12 +461,12 @@ public class BasicAutoCodeGenerator {
             case "mapper":
                 var0 = configuration.serverSrcPath;
                 var2 = configuration.upperFunctionName + "Mapper";
-                break;
+                return configuration.mapperPath;
             case "mapperXml":
                 var0 = configuration.mapperXmlSrcPath;
                 var2 = configuration.upperFunctionName + "Mapper";
                 var3 = ".xml";
-                break;
+                return configuration.mapperXmlPath;
             case "clientTest":
                 var0 = configuration.serverTestSrcPath;
                 var2 = configuration.upperFunctionName + "ClientTest";
@@ -630,6 +677,10 @@ public class BasicAutoCodeGenerator {
     }
 
     protected String getControllerAppendString() {
+        if (configuration.enabledNewVersion) {
+            return transform(ItemTypeEnum.Controller_Append.getItemName());
+        }
+
         int replaceCount = 0;
         StringBuilder sb = new StringBuilder();
         if (isGet()) {
@@ -679,8 +730,8 @@ public class BasicAutoCodeGenerator {
         sb.append("@RestController\n");
         sb.append(replaceFormat("@RequestMapping(value = CustomerRequestCommonPathConstant.REQUEST_PROJECT_PATH + \"/{}\")\n", replaceCount++));
         sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
-        sb.append(replaceFormat("public class {}Controller {\n", 3));
-        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
+        sb.append(replaceFormat("public class {}Controller_Append {\n", 3));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller_Append.class);\n", 3));
         sb.append("\n");
         sb.append("\t@Autowired\n");
         sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n", 3, 6));
@@ -954,5 +1005,13 @@ public class BasicAutoCodeGenerator {
 
     protected void setModelDesc(String desc) {
         this.modelDesc = desc;
+    }
+
+    protected String transform(String templateName) {
+        String template = FileUtils.readString(this.getClass(), templateName);
+        for (Map.Entry<String, String> entry : fieldNameMap.entrySet()) {
+            template = template.replaceAll(entry.getKey(), entry.getValue());
+        }
+        return template;
     }
 }

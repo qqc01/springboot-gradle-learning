@@ -151,6 +151,42 @@ public class CodeGeneratorConfiguration implements InitializingBean {
 
     public String upperServiceName;
 
+    @Value("${codeGenerator.controllerName}")
+    public String controllerName;
+
+    @Value("${codeGenerator.consumerName}")
+    public String consumerName;
+
+    @Value("${codeGenerator.consumerVariableName}")
+    public String consumerVariableName;
+
+    @Value("${codeGenerator.requestModelVariableName}")
+    public String requestModelVariableName;
+
+    @Value("${codeGenerator.blockingStubVariableName}")
+    public String blockingStubVariableName;
+
+    @Value("${codeGenerator.providerName}")
+    public String providerName;
+
+    @Value("${codeGenerator.daoVariableName}")
+    public String daoVariableName;
+
+    @Value("${codeGenerator.mapperVariableName}")
+    public String mapperVariableName;
+
+    @Value("${codeGenerator.mapperPath}")
+    public String mapperPath;
+
+    @Value("${codeGenerator.mapperXmlPath}")
+    public String mapperXmlPath;
+
+    @Value("${codeGenerator.protoPath}")
+    public String protoPath;
+
+    @Value("${codeGenerator.enabledNewVersion}")
+    public Boolean enabledNewVersion;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         this.upperFunctionName = upper(functionName);

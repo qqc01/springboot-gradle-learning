@@ -24,7 +24,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Component
+//@Component
 public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implements AutoCodeGenerator, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(DataImportAutoCodeGenerator.class);
     private AutoCodeGeneratorHelper helper;
