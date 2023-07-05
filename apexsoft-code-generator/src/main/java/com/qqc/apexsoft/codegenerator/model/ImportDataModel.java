@@ -12,6 +12,14 @@ public class ImportDataModel {
     private String name;
     private String desc;
     private ImportDataType type;
+    /**
+     * 字段的java类型，示例：String
+     */
+    private String fieldType;
+    /**
+     * 备注
+     */
+    private String remark;
     private String procedureParam;
     private Map<Integer, String> row;
     private List<ImportDataModel> listData;
@@ -78,12 +86,30 @@ public class ImportDataModel {
         return type.equals(ImportDataType.LIST);
     }
 
+    public String getFieldType() {
+        return fieldType;
+    }
+
+    public void setFieldType(String fieldType) {
+        this.fieldType = fieldType;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     @Override
     public String toString() {
         return "ImportDataModel{" +
                 "name='" + name + '\'' +
                 ", desc='" + desc + '\'' +
                 ", type=" + type +
+                ", fieldType='" + fieldType + '\'' +
+                ", remark='" + remark + '\'' +
                 ", procedureParam='" + procedureParam + '\'' +
                 ", row=" + row +
                 ", listData=" + listData +

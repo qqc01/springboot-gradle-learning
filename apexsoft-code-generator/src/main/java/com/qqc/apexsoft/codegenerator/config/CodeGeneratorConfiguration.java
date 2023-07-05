@@ -187,6 +187,9 @@ public class CodeGeneratorConfiguration implements InitializingBean {
     @Value("${codeGenerator.enabledNewVersion}")
     public Boolean enabledNewVersion;
 
+    @Value("${codeGenerator.isCallProcedure}")
+    public Boolean isCallProcedure;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         this.upperFunctionName = upper(functionName);

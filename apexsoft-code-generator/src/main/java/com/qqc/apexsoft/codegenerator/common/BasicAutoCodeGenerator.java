@@ -152,6 +152,8 @@ public class BasicAutoCodeGenerator {
             ImportDataModel importDataModel = new ImportDataModel();
             importDataModel.setName(name);
             importDataModel.setDesc(desc);
+            importDataModel.setFieldType(map.get(2));// 第三列 java字段类型
+            importDataModel.setRemark(map.get(4));// 第5列 不是list名称是，表示备注
             importDataModel.setProcedureParam(map.get(1));//第二列 存储过程参数
             importDataModel.setType(ImportDataType.COMMON);
             importDataModel.setRow(map);
@@ -575,7 +577,11 @@ public class BasicAutoCodeGenerator {
                 temp.append("\n");
                 sb.append(replaceAll(temp, desc, name, listObjName));
             } else {
-                temp.append("\t/**\n").append("\t * {0}\n").append("\t */\n").append("\t@ApiModelProperty(notes = \"{0}\")\n").append("\tprivate String {1};\n");
+                String remark = "";
+                if (StringUtils.isNotBlank(importDataModel.getRemark())) {
+                    remark = "," + importDataModel.getRemark();
+                }
+                temp.append("\t/**\n").append("\t * {0}\n").append("\t */\n").append("\t@ApiModelProperty(notes = \"{0}" + remark + "\")\n").append("\tprivate " + importDataModel.getFieldType() + " {1};\n");
                 temp.append("\n");
                 sb.append(replaceAll(temp, desc, name));
             }
@@ -605,11 +611,11 @@ public class BasicAutoCodeGenerator {
                 temp.append("\n");
                 sb.append(replaceAll(temp, name, upper(name), listObjName));
             } else {
-                temp.append("\tpublic String get{1}() {\n");
+                temp.append("\tpublic " + importDataModel.getFieldType() + " get{1}() {\n");
                 temp.append("\t\treturn {0};\n");
                 temp.append("\t}\n");
                 temp.append("\n");
-                temp.append("\tpublic void set{1}(String {0}) {\n");
+                temp.append("\tpublic void set{1}(" + importDataModel.getFieldType() +" {0}) {\n");
                 temp.append("\t\tthis.{0} = {0};\n");
                 temp.append("\t}\n");
                 temp.append("\n");
@@ -636,6 +642,22 @@ public class BasicAutoCodeGenerator {
         return getProtoBody(list, configuration.getWhiteRegExp());
     }
 
+    protected String getProtoType(String javaType) {
+        String protoType = null;
+        switch (javaType) {
+            case "String":
+                protoType = "string";
+                break;
+            case "Integer":
+                protoType = "int32";
+                break;
+            case "Long":
+                protoType = "int64";
+                break;
+        }
+        return protoType;
+    }
+
     protected String getProtoBody(List<ImportDataModel> list, String whiteRegExp) {
         StringBuilder result = new StringBuilder();
         String[] strings = new String[4];
@@ -649,7 +671,7 @@ public class BasicAutoCodeGenerator {
                     continue;
                 }
                 strings[0] = fieldDesc;
-                strings[1] = fieldName.equals("czr") ? "int32" : "string";
+                strings[1] = fieldName.equals("czr") ? "int32" : getProtoType(importDataModel.getFieldType());
                 strings[2] = fieldName;
                 strings[3] = String.valueOf(fieldIndex++);
                 // 操作人 int32 czr = 1;
@@ -730,8 +752,8 @@ public class BasicAutoCodeGenerator {
         sb.append("@RestController\n");
         sb.append(replaceFormat("@RequestMapping(value = CustomerRequestCommonPathConstant.REQUEST_PROJECT_PATH + \"/{}\")\n", replaceCount++));
         sb.append(replaceFormat("@Api(tags = \"{}\")\n", replaceCount++));
-        sb.append(replaceFormat("public class {}Controller_Append {\n", 3));
-        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller_Append.class);\n", 3));
+        sb.append(replaceFormat("public class {}Controller {\n", 3));
+        sb.append(replaceFormat("\tprivate static final Logger log = LoggerFactory.getLogger({}Controller.class);\n", 3));
         sb.append("\n");
         sb.append("\t@Autowired\n");
         sb.append(replaceFormat("\tprivate {}Consumer {}Consumer;\n", 3, 6));
