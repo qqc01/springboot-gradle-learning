@@ -146,13 +146,13 @@ public class BasicAutoCodeGenerator {
     protected List<ImportDataModel> getDataList(int sheetNo) {
         List<ImportDataModel> dataList = new ArrayList<>();
         for (Map<Integer, String> map : readExcel(sheetNo, getBasicClass())) {
-            String name = map.get(3);//第四列
-            String desc = map.get(0);//第一列
-            String listObjName = upper(map.get(4));
+            String name = map.get(3);//第四列 API定义
+            String desc = map.get(0);//第一列 参数名
+            String listObjName = upper(map.get(4));// 第5列 list对象名称，小写
             ImportDataModel importDataModel = new ImportDataModel();
             importDataModel.setName(name);
             importDataModel.setDesc(desc);
-            importDataModel.setProcedureParam(map.get(1));
+            importDataModel.setProcedureParam(map.get(1));//第二列 存储过程参数
             importDataModel.setType(ImportDataType.COMMON);
             importDataModel.setRow(map);
             if (isList(name)) {
