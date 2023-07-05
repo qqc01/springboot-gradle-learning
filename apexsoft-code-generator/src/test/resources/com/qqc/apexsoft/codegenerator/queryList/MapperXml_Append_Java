@@ -1,0 +1,8 @@
+	<select id="methodName"
+			resultType="protoPackageName.recordName$Builder">
+		SELECT
+            xmlSelectedTableField
+		FROM procedureName
+		WHERE 1=1
+		xmlQueryConditions
+	</select>

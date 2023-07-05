@@ -1,0 +1,4 @@
+	@Override
+	public List<recordName.Builder> methodName(reqName req) {
+		return mapperVariableName.methodName(req);
+	}

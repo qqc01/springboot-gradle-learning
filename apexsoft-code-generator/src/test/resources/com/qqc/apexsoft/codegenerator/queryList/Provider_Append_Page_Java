@@ -1,0 +1,18 @@
+	@Override
+	public void methodName(reqName request, StreamObserver<rspName> responseObserver) {
+		rspName.Builder rsp = rspName.newBuilder();
+		List<recordName.Builder> resultList = daoVariableName.methodName(request);
+		int total = resultList.size();
+		// 处理分页
+		if (request.getPaging() == 1 && request.getCurrent() > 0 && request.getPageSize() > 0) {
+			resultList = resultList.subList((request.getCurrent() - 1) * request.getPageSize(), Math.min(request.getCurrent() * request.getPageSize(), resultList.size()));
+		}
+		resultList.forEach(builder -> {
+			if (builder != null) {
+				rsp.addRecords(builder);
+			}
+		});
+		rsp.setCode(SUCCESS_CODE).setNote(SUCCESS_NOTE).setTotal(total);
+		responseObserver.onNext(rsp.build());
+		responseObserver.onCompleted();
+	}

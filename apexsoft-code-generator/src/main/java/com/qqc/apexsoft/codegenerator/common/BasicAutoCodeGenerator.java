@@ -145,6 +145,8 @@ public class BasicAutoCodeGenerator {
 
     protected List<ImportDataModel> getDataList(int sheetNo) {
         List<ImportDataModel> dataList = new ArrayList<>();
+        // 参数铭      定义（存储过程参数/表字段名） 类型（java数据类型） API定义            list名称（小写）/备注
+        // 报告期类型   BGQ                      Integer          reportPeriodType   personList/0|年报；1|半年报
         for (Map<Integer, String> map : readExcel(sheetNo, getBasicClass())) {
             String name = map.get(3);//第四列 API定义
             String desc = map.get(0);//第一列 参数名
@@ -848,6 +850,9 @@ public class BasicAutoCodeGenerator {
         sb.append("import java.util.HashMap;\n");
         sb.append("import java.util.List;\n");
         sb.append("import java.util.Map;\n");
+        sb.append("\n");
+        sb.append("import static com.apexsoft.crm.constant.ServerBaseCommonConstant.SUCCESS_CODE;");
+        sb.append("import static com.apexsoft.crm.constant.ServerBaseCommonConstant.SUCCESS_NOTE;");
         sb.append("\n");
         sb.append(getCopyRightString(replaceCount++));
         sb.append("@AmsService\n");

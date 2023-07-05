@@ -363,13 +363,24 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             fieldNameMap.put("transformFromProviderToXml", transformFromProviderToXml());
             // 判断是否分页和是否返回结果集
             ItemTypeEnum itemTypeEnum = null;
-            if (pageEnabled()) {
-                itemTypeEnum = ItemTypeEnum.Provider_Append_Page;
-            } else if (isReturnResult()) {
-                itemTypeEnum = ItemTypeEnum.Provider_Append_Result;
+            if (configuration.isCallProcedure) {
+                if (pageEnabled()) {
+                    itemTypeEnum = ItemTypeEnum.Provider_Append_Page;
+                } else if (isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.Provider_Append_Result;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.Provider_Append_No_Result;
+                }
             } else {
-                itemTypeEnum = ItemTypeEnum.Provider_Append_No_Result;
+                if (pageEnabled()) {
+                    itemTypeEnum = ItemTypeEnum.Provider_Append_Page_Java;
+                } else if (isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.Provider_Append_Result_Java;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.Provider_Append_No_Result_Java;
+                }
             }
+
             return transform(itemTypeEnum.getItemName());
         }
 
@@ -437,11 +448,20 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     private String getDaoAppendString() {
         if (configuration.enabledNewVersion) {
             ItemTypeEnum itemTypeEnum = null;
-            if (pageEnabled() || isReturnResult()) {
-                itemTypeEnum = ItemTypeEnum.Dao_Append_Page_Or_Result;
+            if (configuration.isCallProcedure) {
+                if (pageEnabled() || isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.Dao_Append_Page_Or_Result;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.Dao_Append_No_Result;
+                }
             } else {
-                itemTypeEnum = ItemTypeEnum.Dao_Append_No_Result;
+                if (pageEnabled() || isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.Dao_Append_Page_Or_Result_Java;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.Dao_Append_No_Result_Java;
+                }
             }
+
             return transform(itemTypeEnum.getItemName());
         }
         int replaceCount = 0;
@@ -461,11 +481,20 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     private String getDaoImplAppendString() {
         if (configuration.enabledNewVersion) {
             ItemTypeEnum itemTypeEnum = null;
-            if (pageEnabled() || isReturnResult()) {
-                itemTypeEnum = ItemTypeEnum.DaoImpl_Append_Page_Or_Result;
+            if (configuration.isCallProcedure) {
+                if (pageEnabled() || isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.DaoImpl_Append_Page_Or_Result;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.DaoImpl_Append_No_Result;
+                }
             } else {
-                itemTypeEnum = ItemTypeEnum.DaoImpl_Append_No_Result;
+                if (pageEnabled() || isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.DaoImpl_Append_Page_Or_Result_Java;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.DaoImpl_Append_No_Result_Java;
+                }
             }
+
             return transform(itemTypeEnum.getItemName());
         }
         int replaceCount = 0;
@@ -495,11 +524,20 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
     private String getMapperAppendString() {
         if (configuration.enabledNewVersion) {
             ItemTypeEnum itemTypeEnum = null;
-            if (pageEnabled() || isReturnResult()) {
-                itemTypeEnum = ItemTypeEnum.Mapper_Append_Page_Or_Result;
+            if (configuration.isCallProcedure) {
+                if (pageEnabled() || isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.Mapper_Append_Page_Or_Result;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.Mapper_Append_No_Result;
+                }
             } else {
-                itemTypeEnum = ItemTypeEnum.Mapper_Append_No_Result;
+                if (pageEnabled() || isReturnResult()) {
+                    itemTypeEnum = ItemTypeEnum.Mapper_Append_Page_Or_Result_Java;
+                } else {
+                    itemTypeEnum = ItemTypeEnum.Mapper_Append_No_Result_Java;
+                }
             }
+
             return transform(itemTypeEnum.getItemName());
         }
         int replaceCount = 0;
@@ -516,7 +554,53 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         return mapperAppendString;
     }
 
+    private String getXmlSelectedTableField() {
+        StringBuilder sb = new StringBuilder();
+        for (ImportDataModel importDataModel : outList) {
+            if (importDataModel.isList() ||
+                    (StringUtils.isNotBlank(configuration.getWhiteRegExp())
+                            && importDataModel.getName().matches(configuration.getWhiteRegExp()))
+                    || importDataModel.getName().equals("code") || importDataModel.getName().equals("note")) {
+                continue;
+            }
+            if (sb.length() == 0) {
+                sb.append(importDataModel.getProcedureParam()).append(" AS ").append(importDataModel.getName()).append(",").append("\n");
+            } else {
+                sb.append("\t\t\t").append(importDataModel.getProcedureParam()).append(" AS ").append(importDataModel.getName()).append(",").append("\n");
+            }
+        }
+        deleteEnd(sb);
+        deleteEnd(sb);
+        return sb.toString();
+    }
+
+    private String getXmlQueryConditions() {
+        StringBuilder sb = new StringBuilder();
+        for (ImportDataModel importDataModel : inList) {
+            if (importDataModel.isList() ||
+                    (StringUtils.isNotBlank(configuration.getWhiteRegExp())
+                            && importDataModel.getName().matches(configuration.getWhiteRegExp()))
+                    || importDataModel.getName().equals("code") || importDataModel.getName().equals("note")) {
+                continue;
+            }
+            if (sb.length() == 0) {
+                sb.append("<if test=\"").append(importDataModel.getName()).append(" !=null").append(" and ").append(importDataModel.getName()).append(" !=''\">").append("\n");
+            } else {
+                sb.append("\t\t").append("<if test=\"").append(importDataModel.getName()).append(" !=null").append(" and ").append(importDataModel.getName()).append(" !=''\">").append("\n");
+            }
+            sb.append("\t\t\t").append("AND ").append(importDataModel.getProcedureParam()).append(" = ").append("#{").append(importDataModel.getName()).append("}").append("\n");
+            sb.append("\t\t").append("</if>").append("\n");
+        }
+        deleteEnd(sb);
+        return sb.toString();
+    }
+
     private String getMapperXmlAppendString() {
+        if (!configuration.isCallProcedure) {
+            fieldNameMap.put("xmlSelectedTableField", getXmlSelectedTableField());
+            fieldNameMap.put("xmlQueryConditions", getXmlQueryConditions());
+            return transform(ItemTypeEnum.MapperXml_Append_Java.getItemName());
+        }
         int replaceCount = 0;
         String mapperXmlAppendString = null;
         StringBuilder sb = new StringBuilder();
@@ -851,5 +935,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         fieldNameMap.put("providerName", configuration.providerName);
         fieldNameMap.put("daoVariableName", configuration.daoVariableName);
         fieldNameMap.put("mapperVariableName", configuration.mapperVariableName);
+        fieldNameMap.put("protoPackageName", configuration.protoPackageName);
+        fieldNameMap.put("procedureName", configuration.procedureName);
     }
 }
