@@ -190,6 +190,9 @@ public class CodeGeneratorConfiguration implements InitializingBean {
     @Value("${codeGenerator.isCallProcedure}")
     public Boolean isCallProcedure;
 
+    @Value("${codeGenerator.isDirectImportTable}")
+    public Boolean isDirectImportTable;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         this.upperFunctionName = upper(functionName);

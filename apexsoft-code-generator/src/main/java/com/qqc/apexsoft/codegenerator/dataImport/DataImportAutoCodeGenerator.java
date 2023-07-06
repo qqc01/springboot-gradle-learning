@@ -24,7 +24,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-//@Component
+@Component
 public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implements AutoCodeGenerator, InitializingBean {
     private static final Logger log = LoggerFactory.getLogger(DataImportAutoCodeGenerator.class);
     private AutoCodeGeneratorHelper helper;
@@ -325,13 +325,15 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
     protected String getProviderAppendString() {
         int replaceCount = 0;
         StringBuilder sb = new StringBuilder();
-        // 添加首行空行
+        String providerAppendString = null;
+        if (!configuration.isDirectImportTable) {
+            // 添加首行空行
 //        sb.append("\n");
-        sb.append("\t@Override\n");
-        sb.append(replaceFormat("\tpublic void {}({}Req request, StreamObserver<{}Rsp> responseObserver) {\n", replaceCount++, replaceCount++, 1));
-        sb.append(replaceFormat("\t\t{}Rsp.Builder rsp = {}Rsp.newBuilder();\n", 1, 1));
-        sb.append(replaceFormat("\t\t{}Dao.deleteByDrrFor{}(request);\n", replaceCount++, 1));
-        sb.append(replaceFormat("\t\tInteger count = {}Dao.{}(request.get{}List(), request);\n", 2, 0, 1));
+            sb.append("\t@Override\n");
+            sb.append(replaceFormat("\tpublic void {}({}Req request, StreamObserver<{}Rsp> responseObserver) {\n", replaceCount++, replaceCount++, 1));
+            sb.append(replaceFormat("\t\t{}Rsp.Builder rsp = {}Rsp.newBuilder();\n", 1, 1));
+            sb.append(replaceFormat("\t\t{}Dao.deleteByDrrFor{}(request);\n", replaceCount++, 1));
+            sb.append(replaceFormat("\t\tInteger count = {}Dao.{}(request.get{}List(), request);\n", 2, 0, 1));
 //        sb.append("\t\tMap<String, Object> ins = new HashMap<>();\n");
 //        sb.append("\t\tins.put(\"I_CZR\", request.getImporter());\n");
 //        sb.append(replaceFormat("\t\t{}Dao.handle{}(ins);\n", 2, 1));
@@ -345,14 +347,44 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
 //        sb.append("\t\t} else {\n");
 //        sb.append("\t\t\trsp.setCode(-1).setNote(ParamUtils.getString(ins.get(\"O_NOTE\"))).setTotal(0);\n");
 //        sb.append("\t\t}\n");
-        sb.append("\t\trsp.setCode(1).setNote(\"成功导入\" + count + \"条数据到数据库\").setTotal(count == null ? 0 : count);\n");
-        sb.append("\t\tresponseObserver.onNext(rsp.build());\n");
-        sb.append("\t\tresponseObserver.onCompleted();\n");
-        sb.append("\t}\n");
-        String providerAppendString = replaceAll(sb,
-                configuration.methodName,
-                configuration.upperMethodName,
-                configuration.functionName);
+            sb.append("\t\trsp.setCode(1).setNote(\"成功导入\" + count + \"条数据到数据库\").setTotal(count == null ? 0 : count);\n");
+            sb.append("\t\tresponseObserver.onNext(rsp.build());\n");
+            sb.append("\t\tresponseObserver.onCompleted();\n");
+            sb.append("\t}\n");
+            providerAppendString = replaceAll(sb,
+                    configuration.methodName,
+                    configuration.upperMethodName,
+                    configuration.functionName);
+        } else {
+            // 添加首行空行
+//        sb.append("\n");
+            sb.append("\t@Override\n");
+            sb.append(replaceFormat("\tpublic void {}({}Req request, StreamObserver<{}Rsp> responseObserver) {\n", replaceCount++, replaceCount++, 1));
+            sb.append(replaceFormat("\t\t{}Rsp.Builder rsp = {}Rsp.newBuilder();\n", 1, 1));
+            sb.append(replaceFormat("\t\tInteger count = {}Dao.{}(request.get{}List(), request);\n", 2, 0, 1));
+//        sb.append("\t\tMap<String, Object> ins = new HashMap<>();\n");
+//        sb.append("\t\tins.put(\"I_CZR\", request.getImporter());\n");
+//        sb.append(replaceFormat("\t\t{}Dao.handle{}(ins);\n", 2, 1));
+//        sb.append("\t\tObject code = ins.get(\"O_CODE\");\n");
+//        sb.append("\t\tint o_code = 0;\n");
+//        sb.append("\t\tif (code != null) {\n");
+//        sb.append("\t\t\to_code = Integer.parseInt(String.valueOf(ins.get(\"O_CODE\")));\n");
+//        sb.append("\t\t}\n");
+//        sb.append("\t\tif (o_code > 0) {\n");
+//        sb.append("\t\t\trsp.setCode(o_code).setNote(\"成功导入\" + count + \"条数据到数据库\").setTotal(count == null ? 0 : count);\n");
+//        sb.append("\t\t} else {\n");
+//        sb.append("\t\t\trsp.setCode(-1).setNote(ParamUtils.getString(ins.get(\"O_NOTE\"))).setTotal(0);\n");
+//        sb.append("\t\t}\n");
+            sb.append("\t\trsp.setCode(1).setNote(\"成功导入\" + count + \"条数据到数据库\").setTotal(count == null ? 0 : count);\n");
+            sb.append("\t\tresponseObserver.onNext(rsp.build());\n");
+            sb.append("\t\tresponseObserver.onCompleted();\n");
+            sb.append("\t}\n");
+            providerAppendString = replaceAll(sb,
+                    configuration.methodName,
+                    configuration.upperMethodName,
+                    configuration.functionName);
+        }
+
         log.info("providerAppendString:\n{}", providerAppendString);
         return providerAppendString;
     }
@@ -365,12 +397,20 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
 //            sb.append("\n");
 //        }
         String daoAppendString = null;
-        sb.append(replaceFormat("\tvoid deleteByDrrFor{}({}Req req);\n", replaceCount++, 0));
-        sb.append("\n");
-        sb.append(replaceFormat("\tInteger {}(List<{}> dataList, {}Req req);\n", replaceCount++, 0, 0));
+        if (!configuration.isDirectImportTable) {
+            sb.append(replaceFormat("\tvoid deleteByDrrFor{}({}Req req);\n", replaceCount++, 0));
+            sb.append("\n");
+            sb.append(replaceFormat("\tInteger {}(List<{}> dataList, {}Req req);\n", replaceCount++, 0, 0));
 //        sb.append("\n");
 //        sb.append(replaceFormat("\tvoid handle{}(Map<String, Object> ins);\n", 0));
-        daoAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+            daoAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+        } else {
+            sb.append(replaceFormat("\tInteger {}(List<{}> dataList, {}Req req);\n", 1, 0, 0));
+//        sb.append("\n");
+//        sb.append(replaceFormat("\tvoid handle{}(Map<String, Object> ins);\n", 0));
+            daoAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+        }
+
         log.info("daoAppendString:\n{}", daoAppendString);
         return daoAppendString;
     }
@@ -381,33 +421,59 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
         StringBuilder sb = new StringBuilder();
         // 添加首行空行
 //        sb.append("\n");
-        sb.append("\t@Override\n");
-        sb.append(replaceFormat("\tpublic void deleteByDrrFor{}({}Req req) {\n", replaceCount++, 0));
-        sb.append(replaceFormat("\t\t{}Mapper.deleteByDrrFor{}(req);\n", replaceCount++, 0));
-        sb.append("\t}\n");
-        sb.append("\n");
-        sb.append("\t@Override\n");
-        sb.append(replaceFormat("\tpublic Integer {}(List<{}> dataList, {}Req req) {\n", replaceCount++, 0 , 0));
-        sb.append("\t\tint count = 0;\n");
-        sb.append("\t\tint mod = dataList.size() / 1000;\n");
-        sb.append(replaceFormat("\t\tList<{}> subList = null;\n", 0));
-        sb.append("\t\tfor (int i = 0; i <= mod; i++) {\n");
-        sb.append("\t\t\tsubList = dataList.subList(1000 * i, Math.min(1000 * (i + 1), dataList.size()));\n");
-        sb.append("\t\t\tif (!CollectionUtils.isEmpty(subList)) {\n");
-        sb.append(replaceFormat("\t\t\t\tcount += {}Mapper.{}(subList, req);\n", 1, 2));
-        sb.append("\t\t\t}\n");
-        sb.append("\t\t}\n");
-        sb.append("\t\treturn count;\n");
-        sb.append("\t}\n");
+        if (!configuration.isDirectImportTable) {
+            sb.append("\t@Override\n");
+            sb.append(replaceFormat("\tpublic void deleteByDrrFor{}({}Req req) {\n", replaceCount++, 0));
+            sb.append(replaceFormat("\t\t{}Mapper.deleteByDrrFor{}(req);\n", replaceCount++, 0));
+            sb.append("\t}\n");
+            sb.append("\n");
+            sb.append("\t@Override\n");
+            sb.append(replaceFormat("\tpublic Integer {}(List<{}> dataList, {}Req req) {\n", replaceCount++, 0, 0));
+            sb.append("\t\tint count = 0;\n");
+            sb.append("\t\tint mod = dataList.size() / 1000;\n");
+            sb.append(replaceFormat("\t\tList<{}> subList = null;\n", 0));
+            sb.append("\t\tfor (int i = 0; i <= mod; i++) {\n");
+            sb.append("\t\t\tsubList = dataList.subList(1000 * i, Math.min(1000 * (i + 1), dataList.size()));\n");
+            sb.append("\t\t\tif (!CollectionUtils.isEmpty(subList)) {\n");
+            sb.append(replaceFormat("\t\t\t\tcount += {}Mapper.{}(subList, req);\n", 1, 2));
+            sb.append("\t\t\t}\n");
+            sb.append("\t\t}\n");
+            sb.append("\t\treturn count;\n");
+            sb.append("\t}\n");
 //        sb.append("\n");
 //        sb.append("\t@Override\n");
 //        sb.append(replaceFormat("\tpublic void handle{}(Map<String, Object> ins) {\n", 0));
 //        sb.append(replaceFormat("\t\t{}Mapper.handle{}(ins);\n", 1, 0));
 //        sb.append("\t}\n");
-        daoImplAppendString = replaceAll(sb,
-                configuration.upperMethodName,
-                configuration.functionName,
-                configuration.methodName);
+            daoImplAppendString = replaceAll(sb,
+                    configuration.upperMethodName,
+                    configuration.functionName,
+                    configuration.methodName);
+        } else {
+            sb.append("\t@Override\n");
+            sb.append(replaceFormat("\tpublic Integer {}(List<{}> dataList, {}Req req) {\n", 2, 0 , 0));
+            sb.append("\t\tint count = 0;\n");
+            sb.append("\t\tint mod = dataList.size() / 1000;\n");
+            sb.append(replaceFormat("\t\tList<{}> subList = null;\n", 0));
+            sb.append("\t\tfor (int i = 0; i <= mod; i++) {\n");
+            sb.append("\t\t\tsubList = dataList.subList(1000 * i, Math.min(1000 * (i + 1), dataList.size()));\n");
+            sb.append("\t\t\tif (!CollectionUtils.isEmpty(subList)) {\n");
+            sb.append(replaceFormat("\t\t\t\tcount += {}Mapper.{}(subList, req);\n", 1, 2));
+            sb.append("\t\t\t}\n");
+            sb.append("\t\t}\n");
+            sb.append("\t\treturn count;\n");
+            sb.append("\t}\n");
+//        sb.append("\n");
+//        sb.append("\t@Override\n");
+//        sb.append(replaceFormat("\tpublic void handle{}(Map<String, Object> ins) {\n", 0));
+//        sb.append(replaceFormat("\t\t{}Mapper.handle{}(ins);\n", 1, 0));
+//        sb.append("\t}\n");
+            daoImplAppendString = replaceAll(sb,
+                    configuration.upperMethodName,
+                    configuration.functionName,
+                    configuration.methodName);
+        }
+
         log.info("daoImplAppendString:\n{}", daoImplAppendString);
         return daoImplAppendString;
     }
@@ -420,12 +486,20 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
 //            // 添加首行空行
 //            sb.append("\n");
 //        }
-        sb.append(replaceFormat("\tvoid deleteByDrrFor{}({}Req req);\n", replaceCount++, 0));
-        sb.append("\n");
-        sb.append(replaceFormat("\tint {}(@Param(\"dataList\") List<{}> dataList, @Param(\"req\") {}Req req);\n", replaceCount++, 0, 0));
+        if (!configuration.isDirectImportTable) {
+            sb.append(replaceFormat("\tvoid deleteByDrrFor{}({}Req req);\n", replaceCount++, 0));
+            sb.append("\n");
+            sb.append(replaceFormat("\tint {}(@Param(\"dataList\") List<{}> dataList, @Param(\"req\") {}Req req);\n", replaceCount++, 0, 0));
 //        sb.append("\n");
 //        sb.append(replaceFormat("\tvoid handle{}(Map<String, Object> ins);\n", 0));
-        mapperAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+            mapperAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+        } else {
+            sb.append(replaceFormat("\tint {}(@Param(\"dataList\") List<{}> dataList, @Param(\"req\") {}Req req);\n", 1, 0, 0));
+//        sb.append("\n");
+//        sb.append(replaceFormat("\tvoid handle{}(Map<String, Object> ins);\n", 0));
+            mapperAppendString = replaceAll(sb, configuration.upperMethodName, configuration.methodName);
+        }
+
         log.info("mapperAppendString:\n{}", mapperAppendString);
         return mapperAppendString;
     }
@@ -438,21 +512,22 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
 //            // 添加首行空行
 //            sb.append("\n");
 //        }
-        sb.append(replaceFormat("\t<delete id=\"deleteByDrrFor{}\">\n", replaceCount++));
-        sb.append(replaceFormat("\t\tDELETE FROM {} WHERE DRR = #{importer} --导入人用户ID\n", replaceCount++));
-        sb.append("\t</delete>\n");
-        sb.append(replaceFormat("\t<insert id=\"{}\">\n", replaceCount++));
-        sb.append("\t\tINSERT ALL\n");
-        sb.append("\t\t<foreach collection =\"dataList\" item=\"data\">\n");
-        sb.append(replaceFormat("\t\t\tINTO {} (\n", 1));
-        excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t{0},\n", importDataModel.getProcedureParam())));
-        sb.append("\t\t\tDRR)\n");
-        sb.append("\t\t\tvalues (\n");
-        excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t#{data.{0}},\n", importDataModel.getName())));
-        sb.append("\t\t\t#{req.importer})\n");
-        sb.append("\t\t</foreach >\n");
-        sb.append("\t\tSELECT 1 FROM DUAL\n");
-        sb.append("\t</insert>\n");
+        if (!configuration.isDirectImportTable) {
+            sb.append(replaceFormat("\t<delete id=\"deleteByDrrFor{}\">\n", replaceCount++));
+            sb.append(replaceFormat("\t\tDELETE FROM {} WHERE DRR = #{importer} --导入人用户ID\n", replaceCount++));
+            sb.append("\t</delete>\n");
+            sb.append(replaceFormat("\t<insert id=\"{}\">\n", replaceCount++));
+            sb.append("\t\tINSERT ALL\n");
+            sb.append("\t\t<foreach collection =\"dataList\" item=\"data\">\n");
+            sb.append(replaceFormat("\t\t\tINTO {} (\n", 1));
+            excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t{0},\n", importDataModel.getProcedureParam())));
+            sb.append("\t\t\tDRR)\n");
+            sb.append("\t\t\tvalues (\n");
+            excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t#{data.{0}},\n", importDataModel.getName())));
+            sb.append("\t\t\t#{req.importer})\n");
+            sb.append("\t\t</foreach >\n");
+            sb.append("\t\tSELECT 1 FROM DUAL\n");
+            sb.append("\t</insert>\n");
 //        sb.append(replaceFormat("\t<parameterMap type=\"java.util.Map\" id=\"handle{}Map\">\n", 0));
 //        sb.append("\t\t<parameter javaType=\"java.lang.Integer\" property=\"O_CODE\" mode=\"OUT\" jdbcType=\"INTEGER\"/>\n");
 //        sb.append("\t\t<parameter javaType=\"java.lang.String\" property=\"O_NOTE\" mode=\"OUT\" jdbcType=\"VARCHAR\"/>\n");
@@ -461,10 +536,39 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
 //        sb.append(replaceFormat("\t<update id=\"handle{}\" statementType=\"CALLABLE\" parameterMap=\"handle{}Map\">\n", 0, 0));
 //        sb.append(replaceFormat("\t\tCALL {}(?,?,?)\n", replaceCount++));
 //        sb.append("\t</update>\n");
-        mapperXmlAppendString = replaceAll(sb,
-                configuration.upperMethodName,
-                configuration.tableName,
-                configuration.methodName);
+            mapperXmlAppendString = replaceAll(sb,
+                    configuration.upperMethodName,
+                    configuration.procedureName,
+                    configuration.methodName);
+        } else {
+            sb.append(replaceFormat("\t<insert id=\"{}\">\n", 2));
+            sb.append("\t\tINSERT ALL\n");
+            sb.append("\t\t<foreach collection =\"dataList\" item=\"data\">\n");
+            sb.append(replaceFormat("\t\t\tINTO {} (\n", 1));
+            sb.append("\t\t\tID,\n");
+            excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t{0},\n", importDataModel.getProcedureParam())));
+            sb.append("\t\t\tDRR)\n");
+            sb.append("\t\t\tvalues (\n");
+            sb.append(replaceFormat("\t\t\tJGCRM.FUNC_NEXTID('{}'),\n", 1));
+            excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t#{data.{0}},\n", importDataModel.getName())));
+            sb.append("\t\t\t#{req.importer})\n");
+            sb.append("\t\t</foreach >\n");
+            sb.append("\t\tSELECT 1 FROM DUAL\n");
+            sb.append("\t</insert>\n");
+//        sb.append(replaceFormat("\t<parameterMap type=\"java.util.Map\" id=\"handle{}Map\">\n", 0));
+//        sb.append("\t\t<parameter javaType=\"java.lang.Integer\" property=\"O_CODE\" mode=\"OUT\" jdbcType=\"INTEGER\"/>\n");
+//        sb.append("\t\t<parameter javaType=\"java.lang.String\" property=\"O_NOTE\" mode=\"OUT\" jdbcType=\"VARCHAR\"/>\n");
+//        sb.append("\t\t<parameter property=\"I_CZR\" mode=\"IN\"/>\n");
+//        sb.append("\t</parameterMap>\n");
+//        sb.append(replaceFormat("\t<update id=\"handle{}\" statementType=\"CALLABLE\" parameterMap=\"handle{}Map\">\n", 0, 0));
+//        sb.append(replaceFormat("\t\tCALL {}(?,?,?)\n", replaceCount++));
+//        sb.append("\t</update>\n");
+            mapperXmlAppendString = replaceAll(sb,
+                    configuration.upperMethodName,
+                    configuration.procedureName,
+                    configuration.methodName);
+        }
+
         log.info("mapperXmlAppendString:\n{}", mapperXmlAppendString);
         return mapperXmlAppendString;
     }
