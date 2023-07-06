@@ -347,7 +347,7 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
 //        sb.append("\t\t} else {\n");
 //        sb.append("\t\t\trsp.setCode(-1).setNote(ParamUtils.getString(ins.get(\"O_NOTE\"))).setTotal(0);\n");
 //        sb.append("\t\t}\n");
-            sb.append("\t\trsp.setCode(1).setNote(\"成功导入\" + count + \"条数据到数据库\").setTotal(count == null ? 0 : count);\n");
+            sb.append("\t\trsp.setCode(SUCCESS_CODE).setNote(\"成功导入\" + count + \"条数据到数据库\").setTotal(count == null ? 0 : count);\n");
             sb.append("\t\tresponseObserver.onNext(rsp.build());\n");
             sb.append("\t\tresponseObserver.onCompleted();\n");
             sb.append("\t}\n");
@@ -525,7 +525,7 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
             sb.append("\t\t\tvalues (\n");
             excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t#{data.{0}},\n", importDataModel.getName())));
             sb.append("\t\t\t#{req.importer})\n");
-            sb.append("\t\t</foreach >\n");
+            sb.append("\t\t</foreach>\n");
             sb.append("\t\tSELECT 1 FROM DUAL\n");
             sb.append("\t</insert>\n");
 //        sb.append(replaceFormat("\t<parameterMap type=\"java.util.Map\" id=\"handle{}Map\">\n", 0));

@@ -1,1 +1,1 @@
-	List<recordName.Builder> methodName(reqName req);
+	List<recordName.Builder> methodName(@Param("req") reqName req);

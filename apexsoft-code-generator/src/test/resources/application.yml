@@ -2,4 +2,4 @@ spring:
     profiles:
         # queryList
         # dataImport
-        active: dataImport
+        active: queryList
