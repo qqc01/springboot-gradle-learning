@@ -5,12 +5,12 @@ codeGenerator:
     functionName: transactionCommissionReport
     # 新包需要修改
     functionDesc: 机构C5-服务模块基础微服务
-    methodName: queryTransactionCommissionDetails
-    methodDesc: 交易佣金明细列表查询（按基金公司）
+    methodName: queryTransactionCommissionStatisticsQS
+    methodDesc: 交易佣金明细列表查询（按券商）
     # isCallProcedure为true表示存储过程名称，false表示表名
-    procedureName: JGCRM.TJG_JYYJMX_JJGS
+    procedureName: JGCRM.TJG_JYYJTJ_QS
     # 新包需要修改
-    interfaceIndex: 1
+    interfaceIndex: 5
     pageEnabled: true
     isReturnResult: true
     testEnabled: true
@@ -53,3 +53,5 @@ codeGenerator:
     enabledNewVersion: true
     # 是否调用存储过程
     isCallProcedure: false
+    # 是否直接导入实体表而非中间临时表
+    isDirectImportTable: true
