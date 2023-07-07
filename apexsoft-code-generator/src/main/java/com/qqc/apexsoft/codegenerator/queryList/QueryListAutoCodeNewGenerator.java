@@ -586,7 +586,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             if (sb.length() == 0) {
                 sb.append("<if test=\"").append(importDataModel.getName()).append(" !=null").append(" and ").append(importDataModel.getName()).append(" !=''\">").append("\n");
             } else {
-                sb.append("\t\t").append("<if test=\"").append(importDataModel.getName()).append(" !=null").append(" and ").append(importDataModel.getName()).append(" !=''\">").append("\n");
+                sb.append("\t\t").append("<if test=\"").append("req.").append(importDataModel.getName()).append(" !=null").append(" and ").append("req.").append(importDataModel.getName()).append(" !=''\">").append("\n");
             }
             sb.append("\t\t\t").append("AND ").append(importDataModel.getProcedureParam()).append(" = ").append("#{req.").append(importDataModel.getName()).append("}").append("\n");
             sb.append("\t\t").append("</if>").append("\n");

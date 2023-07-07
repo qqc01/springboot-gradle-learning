@@ -552,7 +552,13 @@ public class DataImportAutoCodeGenerator extends BasicAutoCodeGenerator implemen
             deleteEnd(sb);
             sb.append(")\n");
             sb.append("\t\t\tvalues (\n");
-            sb.append(replaceFormat("\t\t\tJGCRM.FUNC_NEXTID('{}'),\n", 1));
+            // 检查是否为JGCRM.表名这种形式
+            int index;
+            String nextIdTableName = null;
+            if ((index = configuration.procedureName.indexOf(".")) > 0) {
+                nextIdTableName = configuration.procedureName.substring(index + 1);
+            }
+            sb.append(replaceAll("\t\t\tJGCRM.FUNC_NEXTID('{0}'),\n", nextIdTableName));
             excelTitleList.forEach(importDataModel -> sb.append(replaceAll("\t\t\t#{data.{0}},\n", importDataModel.getName())));
             deleteEnd(sb);
             deleteEnd(sb);
