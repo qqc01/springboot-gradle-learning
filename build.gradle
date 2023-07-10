@@ -1,12 +1,14 @@
-plugins {
-    id 'org.springframework.boot' version '2.7.0'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'java'
-}
-
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
+buildscript {
+    repositories {
+        maven {
+            url 'https://maven.aliyun.com/repository/public/'
+        }
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:2.7.0"
+        classpath "io.spring.gradle:dependency-management-plugin:1.1.0"
     }
 }
 
@@ -17,6 +19,10 @@ allprojects {
         }
         mavenLocal()
         mavenCentral()
+
+        apply plugin: "org.springframework.boot"
+        apply plugin: "io.spring.dependency-management"
+        apply plugin: "java"
     }
 
     apply from: "${rootProject.projectDir}/libraries.gradle"

@@ -51,10 +51,6 @@ clean {
     delete protobuf.generatedFilesBaseDir
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     // junit
     // testImplementation 'org.junit.jupiter:junit-jupiter-implementation:5.8.1'
