@@ -397,15 +397,17 @@ public class BasicAutoCodeGenerator {
             } catch (Exception e) {
                 throw new AutoCodeGeneratorException("请检查mapperXml路径！！！");
             }
-            try {
-                assertAndLog("clientTest");
-            } catch (Exception e) {
-                throw new AutoCodeGeneratorException("请检查clientTest路径！！！");
-            }
-            try {
-                assertAndLog("serverTest");
-            } catch (Exception e) {
-                throw new AutoCodeGeneratorException("请检查serverTest路径！！！");
+            if (configuration.testEnabled) {
+                try {
+                    assertAndLog("clientTest");
+                } catch (Exception e) {
+                    throw new AutoCodeGeneratorException("请检查clientTest路径！！！");
+                }
+                try {
+                    assertAndLog("serverTest");
+                } catch (Exception e) {
+                    throw new AutoCodeGeneratorException("请检查serverTest路径！！！");
+                }
             }
         }
         log.info("文件路径检查通过");
@@ -448,7 +450,11 @@ public class BasicAutoCodeGenerator {
                 break;
             case "consumer":
                 var0 = configuration.clientSrcPath;
-                var2 = configuration.upperFunctionName + "Consumer";
+                if (StringUtils.isNotBlank(configuration.consumerName)) {
+                    var2 = configuration.consumerName;
+                } else {
+                    var2 = configuration.upperFunctionName + "Consumer";
+                }
                 break;
             case "provider":
                 var0 = configuration.serverSrcPath;

@@ -1,0 +1,13 @@
+	@Override
+	public void methodName(reqName request, StreamObserver<rspName> responseObserver) {
+		rspName.Builder rsp = rspName.newBuilder();
+		List<recordName.Builder> resultList = daoVariableName.methodName(request);
+		resultList.forEach(builder -> {
+			if (builder != null) {
+				rsp.addRecords(builder);
+			}
+		});
+		rsp.setCode(SUCCESS_CODE).setNote(SUCCESS_NOTE);
+		responseObserver.onNext(rsp.build());
+		responseObserver.onCompleted();
+	}

@@ -204,6 +204,9 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     @Override
     public void writeClientTest() {
+        if (!configuration.testEnabled) {
+            return;
+        }
         mainName = "clientTest";
         // 1 创建文件
         if (isCreateFile()) {
@@ -215,6 +218,9 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     @Override
     public void writeServerTest() {
+        if (!configuration.testEnabled) {
+            return;
+        }
         mainName = "serverTest";
         // 1 创建文件
         if (isCreateFile()) {
@@ -226,6 +232,9 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
 
     @Override
     public void writeTestData() {
+        if (!configuration.testEnabled) {
+            return;
+        }
         mainName = "testData";
         write3(getPath(mainName), getTestDataNewString());
     }
@@ -584,7 +593,7 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
                 continue;
             }
             if (sb.length() == 0) {
-                sb.append("<if test=\"").append(importDataModel.getName()).append(" !=null").append(" and ").append(importDataModel.getName()).append(" !=''\">").append("\n");
+                sb.append("<if test=\"").append("req.").append(importDataModel.getName()).append(" !=null").append(" and ").append("req.").append(importDataModel.getName()).append(" !=''\">").append("\n");
             } else {
                 sb.append("\t\t").append("<if test=\"").append("req.").append(importDataModel.getName()).append(" !=null").append(" and ").append("req.").append(importDataModel.getName()).append(" !=''\">").append("\n");
             }
