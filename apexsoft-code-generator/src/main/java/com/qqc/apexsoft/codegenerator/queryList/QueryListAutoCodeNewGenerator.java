@@ -276,7 +276,9 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             sb.append("\t//排序\n").append(replaceAll("\tstring sort = {0};\n", fieldIndex++));
         }
         // 1.2 默认必须有的入参
-        sb.append("\t//操作人\n").append(replaceAll("\tint32 czr = {0};\n", fieldIndex++));
+        if (configuration.isNeedCzr) {
+            sb.append("\t//操作人\n").append(replaceAll("\tint32 czr = {0};\n", fieldIndex++));
+        }
         sb.append(getProtoBody(inList));
         sb.append("}\n");
         // 1.3 空行
@@ -334,7 +336,9 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
         sb.append(replaceFormat("\tpublic {}Rsp {}({}Model model) {\n", replaceCount++, replaceCount++, 0));
         sb.append(replaceFormat("\t\t{}Req.Builder request = {}Req.newBuilder();\n", 0, 0));
         sb.append("\t\tProtoBufUtil.transform(model, request);\n");
-        sb.append("\t\trequest.setCzr(UserHelper.getId());\n");
+        if (configuration.isNeedCzr) {
+            sb.append("\t\trequest.setCzr(UserHelper.getId());\n");
+        }
         sb.append(replaceFormat("\t\treturn {}ServiceBlockingStub.{}(request.build());\n", replaceCount++, replaceCount++));
         sb.append("\t}\n");
         String consumerAppendString = replaceAll(sb,
@@ -358,8 +362,10 @@ public class QueryListAutoCodeNewGenerator extends BasicAutoCodeGenerator implem
             sb.append("\t\tins.put(\"I_TOTALROWS\", request.getTotal());\n");
             sb.append("\t\tins.put(\"I_SORT\", request.getSort());\n");
         }
-        // 默认必传的 crz
-        sb.append("\t\tins.put(\"I_CZR\", request.getCzr());\n");
+        if (configuration.isNeedCzr) {
+            // 传的 crz
+            sb.append("\t\tins.put(\"I_CZR\", request.getCzr());\n");
+        }
         sb.append(getProviderBody(inList));
         // 去除最后多余的换行符
         deleteEnd(sb);

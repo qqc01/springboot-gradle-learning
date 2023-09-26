@@ -2,56 +2,65 @@
 codeGenerator:
     # 业务配置
     # 新包需要修改
-    functionName: transactionCommissionReport
+    functionName: bankYbzReport
     # 新包需要修改
-    functionDesc: 机构C5-服务模块基础微服务
-    methodName: queryTransactionCommissionStatisticsQS
-    methodDesc: 交易佣金明细列表查询（按券商）
+    functionDesc: 机构C5-报表中心微服务
+    methodName: queryYbzBankInvestList
+    methodDesc: 一本账银行投入填写表查询
     # isCallProcedure为true表示存储过程名称，false表示表名
-    procedureName: JGCRM.TJG_JYYJTJ_QS
-    # 新包需要修改
-    interfaceIndex: 5
-    pageEnabled: true
-    isReturnResult: true
-    testEnabled: true
+    procedureName: JGCRM.PCX_JG_YBZ_YHTRTXB
+    # 新包需要修改，注意，不为1的时候才会空行
+    interfaceIndex: 2
+    pageEnabled: false
+    isReturnResult: false
+    testEnabled: false
     # 新包需要修改
     isCreateFile: false
     # 根路径
-    # protoSrcPath: D:\IdeaProjects\apexsoft\htzq\jgcrm-ams\ams-protocol\src\main\proto
-    clientSrcPath: D:\files\IdeaProjects\htzq\jgcrm-ams\ams-client-org-activity\src\main\java
-    serverSrcPath: D:\files\IdeaProjects\htzq\jgcrm-ams\ams-server-org-activity\src\main\java
-    # mapperXmlSrcPath: D:\IdeaProjects\apexsoft\htzq\jgcrm-ams\ams-server-org-activity\src\main\resources\mybatis\oracle\jgcrm
-    serverTestSrcPath: D:\files\IdeaProjects\htzq\jgcrm-ams\ams-server-org-activity\src\test\java
-    serverTestDataSrcPath: D:\files\IdeaProjects\htzq\jgcrm-ams\ams-server-org-activity\src\main\resources
+    # protoSrcPath: D:\IdeaProjects\apexsoft\htzq\tmp\jgcrm-ams\ams-protocol\src\main\proto
+    clientSrcPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-client-org-statistics\src\main\java
+    serverSrcPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\java
+    # mapperXmlSrcPath: D:\IdeaProjects\apexsoft\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\resources\mybatis\oracle\jgcrm
+    serverTestSrcPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\test\java
+    serverTestDataSrcPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\resources
     # 默认设置
     # 新包需要修改
-    defaultPackageNamePrefix: com.apexsoft.crm.transactionCommissionReport
+    defaultPackageNamePrefix: com.apexsoft.crm.bankYbzReport
     whiteRegExp: czr
     # 其他设置
     # proto
-    protoPackageName: ip.base.activity
+    protoPackageName: ip.base.statistics.bankYbzReport
     # 新包需要修改
-    protoName: transactionCommissionReport
+    protoName: bankYbzReport
     rpcRegExp: .*Service\s+.*
     # 服务名
-    serviceName: activity
+    serviceName: statistics
 
     # 几个经常容易变的名称
-    controllerName: TransactionCommissionReportController
-    consumerName: TransactionCommissionReportConsumer
-    consumerVariableName: transactionCommissionReportConsumer
-    requestModelVariableName: model
-    blockingStubVariableName: transactionCommissionReportServiceBlockingStub
-    providerName: TransactionCommissionReportProvider
-    daoVariableName: transactionCommissionReportDao
-    mapperVariableName: transactionCommissionReportMapper
-    mapperPath: D:\files\IdeaProjects\htzq\jgcrm-ams\ams-server-org-activity\src\main\java\com\apexsoft\crm\transactionCommissionReport\mapper\TransactionCommissionReportMapper.java
-    mapperXmlPath: D:\files\IdeaProjects\htzq\jgcrm-ams\ams-server-org-activity\src\main\resources\mybatis\oracle\jgcrm\TransactionCommissionReportMapper.xml
-    protoPath: D:\files\IdeaProjects\htzq\jgcrm-ams\ams-protocol\src\main\proto\ip\base\activity\transactionCommissionReport\transactionCommissionReport.proto
+    controllerName: BankYbzReportController
+    consumerVariableName: bankYbzReportConsumer
+    consumerName: BankYbzReportConsumer
+    requestModelVariableName: queryModel
+    blockingStubVariableName: bankYbzReportServiceBlockingStub
+    providerName: BankYbzReportProvider
+    daoVariableName: bankYbzReportDao
+    mapperVariableName: bankYbzReportMapper
+    controllerPath:
+    providerPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\java\com\apexsoft\crm\bankYbzReport\provider\BankYbzReportProvider.java
+    daoPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\java\com\apexsoft\crm\bankYbzReport\dao\BankYbzReportDao.java
+    daoImplPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\java\com\apexsoft\crm\bankYbzReport\dao\impl\BankYbzReportDaoImpl.java
+    # 别忘了mapper后面的jgcrm后缀
+    mapperPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\java\com\apexsoft\crm\bankYbzReport\mapper\jgcrm\BankYbzReportMapper.java
+    mapperXmlPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-server-org-statistics\src\main\resources\mybatis\oracle\jgcrm\BankYbzReportMapper.xml
+    protoPath: D:\files\IdeaProjects\htzq\tmp\jgcrm-ams\ams-protocol\src\main\proto\ip\base\statistics\bankYbzReport\bankYbzReport.proto
 
     # 是否启用新版本
     enabledNewVersion: true
     # 是否调用存储过程
     isCallProcedure: false
-    # 是否直接导入实体表而非中间临时表
-    isDirectImportTable: true
+    # 是否直接导入实体表而非中间临时表，查询列表不使用该字段
+    isDirectImportTable: false
+    # 是否需要默认的操作人
+    isNeedCzr: false
+    # 是否默认数据类型，默认为String
+    isEnabledDefaultDataType: true

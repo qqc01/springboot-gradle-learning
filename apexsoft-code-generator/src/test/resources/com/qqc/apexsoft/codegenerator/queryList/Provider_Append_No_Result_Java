@@ -1,0 +1,8 @@
+	@Override
+	public void methodName(reqName request, StreamObserver<rspName> responseObserver) {
+		rspName.Builder rsp = rspName.newBuilder();
+		transformFromProviderToXml
+		daoVariableName.methodName(ins);
+		responseObserver.onNext(rsp.build());
+		responseObserver.onCompleted();
+	}

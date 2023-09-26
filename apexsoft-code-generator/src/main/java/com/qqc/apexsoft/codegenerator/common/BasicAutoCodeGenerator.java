@@ -459,15 +459,15 @@ public class BasicAutoCodeGenerator {
             case "provider":
                 var0 = configuration.serverSrcPath;
                 var2 = configuration.upperFunctionName + "Provider";
-                break;
+                return configuration.providerPath;
             case "dao":
                 var0 = configuration.serverSrcPath;
                 var2 = configuration.upperFunctionName + "Dao";
-                break;
+                return configuration.daoPath;
             case "daoImpl":
                 var0 = configuration.serverSrcPath;
                 var2 = configuration.upperFunctionName + "DaoImpl";
-                break;
+                return configuration.daoImplPath;
             case "mapper":
                 var0 = configuration.serverSrcPath;
                 var2 = configuration.upperFunctionName + "Mapper";
@@ -589,12 +589,19 @@ public class BasicAutoCodeGenerator {
                 if (StringUtils.isNotBlank(importDataModel.getRemark())) {
                     remark = "," + importDataModel.getRemark();
                 }
-                temp.append("\t/**\n").append("\t * {0}\n").append("\t */\n").append("\t@ApiModelProperty(notes = \"{0}" + remark + "\")\n").append("\tprivate " + importDataModel.getFieldType() + " {1};\n");
+                temp.append("\t/**\n").append("\t * {0}\n").append("\t */\n").append("\t@ApiModelProperty(notes = \"{0}" + remark + "\")\n").append("\tprivate " + getModelDataType(importDataModel) + " {1};\n");
                 temp.append("\n");
                 sb.append(replaceAll(temp, desc, name));
             }
         }
         return sb.toString();
+    }
+
+    private String getModelDataType(ImportDataModel importDataModel) {
+        if (configuration.isEnabledDefaultDataType) {
+            return "String";
+        }
+        return importDataModel.getFieldType();
     }
 
     protected String getModelGetterAndSetter(List<ImportDataModel> list) {
@@ -619,11 +626,11 @@ public class BasicAutoCodeGenerator {
                 temp.append("\n");
                 sb.append(replaceAll(temp, name, upper(name), listObjName));
             } else {
-                temp.append("\tpublic " + importDataModel.getFieldType() + " get{1}() {\n");
+                temp.append("\tpublic " + getModelDataType(importDataModel) + " get{1}() {\n");
                 temp.append("\t\treturn {0};\n");
                 temp.append("\t}\n");
                 temp.append("\n");
-                temp.append("\tpublic void set{1}(" + importDataModel.getFieldType() +" {0}) {\n");
+                temp.append("\tpublic void set{1}(" + getModelDataType(importDataModel) +" {0}) {\n");
                 temp.append("\t\tthis.{0} = {0};\n");
                 temp.append("\t}\n");
                 temp.append("\n");
@@ -651,6 +658,9 @@ public class BasicAutoCodeGenerator {
     }
 
     protected String getProtoType(String javaType) {
+        if (configuration.isEnabledDefaultDataType) {
+            return "string";
+        }
         String protoType = null;
         switch (javaType) {
             case "String":
@@ -944,7 +954,7 @@ public class BasicAutoCodeGenerator {
         int replaceCount = 0;
         String mapperNewString = null;
         StringBuilder sb = new StringBuilder();
-        sb.append(replaceFormat("package {}.mapper;\n", replaceCount++));
+        sb.append(replaceFormat("package {}.mapper.jgcrm;\n", replaceCount++));
         sb.append("\n");
         sb.append(replaceFormat("import {}.*;\n", replaceCount++));
         sb.append("import org.apache.ibatis.annotations.Mapper;\n");
@@ -976,7 +986,7 @@ public class BasicAutoCodeGenerator {
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         sb.append("<!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\">\n");
         sb.append("\n");
-        sb.append(replaceFormat("<mapper namespace=\"{}.mapper.{}Mapper\">\n", replaceCount++, replaceCount));
+        sb.append(replaceFormat("<mapper namespace=\"{}.mapper.jgcrm.{}Mapper\">\n", replaceCount++, replaceCount));
         sb.append("</mapper>\n");
         mapperXmlNewString = replaceAll(sb, configuration.defaultPackageNamePrefix, configuration.upperFunctionName);
         log.info("mapperXmlNewString:\n{}", mapperXmlNewString);

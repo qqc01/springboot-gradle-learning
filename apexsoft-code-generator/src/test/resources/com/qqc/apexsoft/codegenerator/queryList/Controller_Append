@@ -1,5 +1,5 @@
 	@ApiPost( "/v1/methodName")
 	@ApiOperation(value = "methodDesc")
 	public rspName methodName(@ApiParam(value = "入参JSON") @RequestBody requestModelName requestModelVariableName) {
-		return consumerVariableName.methodName(model);
+		return consumerVariableName.methodName(requestModelVariableName);
 	}

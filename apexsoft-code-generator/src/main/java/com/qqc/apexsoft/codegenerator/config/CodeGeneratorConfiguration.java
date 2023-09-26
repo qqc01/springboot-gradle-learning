@@ -175,6 +175,15 @@ public class CodeGeneratorConfiguration implements InitializingBean {
     @Value("${codeGenerator.mapperVariableName}")
     public String mapperVariableName;
 
+    @Value("${codeGenerator.providerPath}")
+    public String providerPath;
+
+    @Value("${codeGenerator.daoPath}")
+    public String daoPath;
+
+    @Value("${codeGenerator.daoImplPath}")
+    public String daoImplPath;
+
     @Value("${codeGenerator.mapperPath}")
     public String mapperPath;
 
@@ -192,6 +201,12 @@ public class CodeGeneratorConfiguration implements InitializingBean {
 
     @Value("${codeGenerator.isDirectImportTable}")
     public Boolean isDirectImportTable;
+
+    @Value("${codeGenerator.isNeedCzr}")
+    public Boolean isNeedCzr;
+
+    @Value("${codeGenerator.isEnabledDefaultDataType}")
+    public Boolean isEnabledDefaultDataType;
 
     @Override
     public void afterPropertiesSet() throws Exception {

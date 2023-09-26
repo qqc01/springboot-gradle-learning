@@ -1,0 +1,4 @@
+	@Override
+	public void methodName(Map<String, Object> ins) {
+		mapperVariableName.methodName(ins);
+	}

@@ -62,3 +62,6 @@ target/
 /gradle/
 /gradlew
 /gradlew.bat
+
+# generate Files
+*.xlsx
